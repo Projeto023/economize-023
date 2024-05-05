@@ -6,11 +6,13 @@
     "@mui/lab": "next",
     "@mui/material": "next",
     "@mui/styled-engine-sc": "next",
+    "@mui/x-data-grid": "^7.3.1",
     "@testing-library/jest-dom": "latest",
     "@testing-library/react": "latest",
     "@testing-library/user-event": "latest",
     "react": "latest",
     "react-dom": "latest",
+    "react-hook-form": "^7.51.3",
     "react-router-dom": "^6.22.3",
     "react-scripts": "latest",
     "styled-components": "latest"

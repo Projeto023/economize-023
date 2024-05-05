@@ -12,29 +12,42 @@ import {
   TextField,
   Box,
   MenuItem,
+  Select,
 } from "@mui/material";
+import { DataGrid } from "@mui/x-data-grid";
 import Container from "@mui/material/Container";
 import { ChangeEvent, useState } from "react";
+import { useForm, Controller } from "react-hook-form";
 
-const rowDefinition = [
+const columnDefinition = [
   {
+    id: 1,
     formattedName: "Descrição",
     rowname: "description",
     dataFormat: "text",
     isSelect: false,
   },
   {
+    id: 2,
     formattedName: "Valor",
     rowname: "value",
     dataFormat: "number",
     isSelect: false,
   },
   {
+    id: 3,
     formattedName: "Tipo",
     rowname: "type",
     dataFormat: "number",
     isSelect: true,
     selectValues: ["Gasto", "Renda"],
+  },
+  {
+    id: 3,
+    formattedName: "Data",
+    rowname: "date",
+    dataFormat: "date",
+    isSelect: false,
   },
 ];
 
@@ -75,97 +88,89 @@ const UserAvatar = () => {
 };
 
 interface RowData {
-  [key: string]: {
-    [key: string]: string;
-  };
+  description: string;
+  value: string;
+  type: string;
+  date: Date;
 }
 
 const DynamicTable = () => {
   const [rows, setRows] = useState<RowData[]>([]);
-  const [rowData, setRowData] = useState<RowData>({});
-  const [rowCount, setRowCount] = useState(0);
+  const { handleSubmit, control } = useForm();
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    rowIndex: string,
-    columnName: string
-  ) => {
-    const { value } = e.target;
-    setRowData((prevData) => {
-      if (!prevData) {
-        prevData = {};
-      }
-      return {
-        ...prevData,
-        [rowIndex]: {
-          ...prevData[rowIndex],
-          [columnName]: value,
-        },
-      };
-    });
-  };
-
-  const handleSubmit = () => {
-    setRows((prevRows) => [...prevRows, rowData]);
-    setRowData({});
-    setRowCount((currrentCount) => (currrentCount += 1));
+  const handleFormSubmit = (data: any) => {
+    setRows((curRows) => [...curRows, data]);
   };
 
   return (
-    <div>
-      <TableContainer component={Paper}>
-        <TotalValueSummary rows={rows} />
-        <Table>
-          <TableHead>
-            <TableRow>
-              {rowDefinition.map((definition) => (
-                <TableCell>{definition.formattedName}</TableCell>
-              ))}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {rows.map((row, index) => {
-              const backgroundColor =
-                row[index]["type"] === "Gasto" ? "#FFCCCB" : "lightgreen";
+    <div style={{ height: "100vh" }}>
+      <TotalValueSummary rows={rows} />
+      <DataGrid
+        rows={rows}
+        getRowId={(row) => row.description + row.value + row.type}
+        style={{ background: "white", minHeight: "5vh" }}
+        columns={columnDefinition.map((definition, index) => ({
+          field: definition.rowname,
+          headerName: definition.formattedName,
+          width: 150,
+          key: index,
+        }))}
+      />
+      <div style={{ display: "flex", flexDirection: "row", margin: "1%" }}>
+        <Controller
+          name={`description`}
+          control={control}
+          defaultValue=""
+          render={({ field }) => (
+            <TextField
+              {...field}
+              variant="outlined"
+              placeholder="Descrição"
+              onChange={(e) => field.onChange(e.target.value)}
+            />
+          )}
+        />
 
-              return (
-                <TableRow
-                  key={index}
-                  style={{ backgroundColor: backgroundColor }}
-                >
-                  {rowDefinition.map((definition) => (
-                    <TableCell>{row[index][definition.rowname]}</TableCell>
-                  ))}
-                </TableRow>
-              );
-            })}
-            <TableRow>
-              {rowDefinition.map((definition) => (
-                <TableCell>
-                  <TextField
-                    select={definition.isSelect}
-                    type={definition.dataFormat}
-                    variant="outlined"
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                      handleChange(e, rowCount.toString(), definition.rowname)
-                    }
-                    value={
-                      rowData[rowCount]
-                        ? rowData[rowCount][definition.rowname] || ""
-                        : ""
-                    }
-                  >
-                    {definition.selectValues?.map((val) => (
-                      <MenuItem value={val}>{val}</MenuItem>
-                    ))}
-                  </TextField>
-                </TableCell>
-              ))}
-            </TableRow>
-          </TableBody>
-        </Table>
-      </TableContainer>
-      <Button onClick={handleSubmit} variant="contained" color="primary">
+        <Controller
+          name={`value`}
+          control={control}
+          defaultValue=""
+          render={({ field }) => (
+            <TextField
+              {...field}
+              type="number"
+              variant="outlined"
+              placeholder="Valor"
+              onChange={(e) => field.onChange(e.target.value)}
+            />
+          )}
+        />
+
+        <Controller
+          name={`type`}
+          control={control}
+          defaultValue=""
+          render={({ field }) => (
+            <Select
+              {...field}
+              onChange={(e) => field.onChange(e.target.value)}
+              value={field.value || "Gasto"} // Use value instead of defaultValue
+            >
+              <MenuItem key={"gasto"} value={"Gasto"}>
+                Gasto
+              </MenuItem>
+              <MenuItem key={"renda"} value={"Renda"}>
+                Renda
+              </MenuItem>
+            </Select>
+          )}
+        />
+      </div>
+      <Button
+        onClick={handleSubmit(handleFormSubmit)}
+        variant="contained"
+        color="primary"
+      >
         Add Row
       </Button>
     </div>
@@ -177,8 +182,8 @@ const TotalValueSummary = ({ rows }: { rows: RowData[] }) => {
   const calculateTotalValor = () => {
     let total = 0;
     rows.forEach((row, index) => {
-      const rowValue = Number(row[index]["value"]);
-      const isExpense = row[index]["type"] === "Gasto";
+      const rowValue = Number(row.value);
+      const isExpense = row.type === "Gasto";
       if (isExpense) {
         total -= rowValue;
       } else {
