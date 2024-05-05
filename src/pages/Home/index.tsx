@@ -3,12 +3,6 @@ import {
   Avatar,
   Paper,
   Button,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   TextField,
   Box,
   MenuItem,
@@ -16,7 +10,7 @@ import {
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import Container from "@mui/material/Container";
-import { ChangeEvent, useState } from "react";
+import { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 
 const columnDefinition = [
@@ -53,9 +47,11 @@ const columnDefinition = [
 
 const Home = () => {
   return (
-    <Container component="main" maxWidth="xs">
-      <UserAvatar />
-      <DynamicTable />
+    <Container component="main" maxWidth="md" style={{ height: "100vh" }}>
+      <div style={{ minHeight: "100%" }}>
+        <UserAvatar />
+        <DynamicTable />
+      </div>
     </Container>
   );
 };
@@ -103,12 +99,12 @@ const DynamicTable = () => {
   };
 
   return (
-    <div style={{ height: "100vh" }}>
+    <div style={{ height: "100%" }}>
       <TotalValueSummary rows={rows} />
       <DataGrid
         rows={rows}
         getRowId={(row) => row.description + row.value + row.type}
-        style={{ background: "white", minHeight: "5vh" }}
+        style={{ background: "white", minHeight: "50vh" }}
         columns={columnDefinition.map((definition, index) => ({
           field: definition.rowname,
           headerName: definition.formattedName,
@@ -116,7 +112,15 @@ const DynamicTable = () => {
           key: index,
         }))}
       />
-      <div style={{ display: "flex", flexDirection: "row", margin: "1%" }}>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "row",
+          margin: "1%",
+          justifyContent: "space-between",
+          padding: "1em",
+        }}
+      >
         <Controller
           name={`description`}
           control={control}
@@ -127,6 +131,7 @@ const DynamicTable = () => {
               variant="outlined"
               placeholder="Descrição"
               onChange={(e) => field.onChange(e.target.value)}
+              style={{ backgroundColor: "white" }}
             />
           )}
         />
@@ -142,6 +147,7 @@ const DynamicTable = () => {
               variant="outlined"
               placeholder="Valor"
               onChange={(e) => field.onChange(e.target.value)}
+              style={{ backgroundColor: "white" }}
             />
           )}
         />
@@ -154,7 +160,8 @@ const DynamicTable = () => {
             <Select
               {...field}
               onChange={(e) => field.onChange(e.target.value)}
-              value={field.value || "Gasto"} // Use value instead of defaultValue
+              value={field.value || "Gasto"}
+              style={{ backgroundColor: "white" }}
             >
               <MenuItem key={"gasto"} value={"Gasto"}>
                 Gasto
@@ -171,14 +178,13 @@ const DynamicTable = () => {
         variant="contained"
         color="primary"
       >
-        Add Row
+        Adicionar
       </Button>
     </div>
   );
 };
 
 const TotalValueSummary = ({ rows }: { rows: RowData[] }) => {
-  // Calculate the total valor
   const calculateTotalValor = () => {
     let total = 0;
     rows.forEach((row, index) => {
