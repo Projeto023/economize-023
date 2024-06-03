@@ -8,10 +8,11 @@ import {
   MenuItem,
   Select,
 } from "@mui/material";
-import { DataGrid } from "@mui/x-data-grid";
+import { DataGrid, GridValidRowModel } from "@mui/x-data-grid";
 import Container from "@mui/material/Container";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
+import axios from "axios";
 
 const columnDefinition = [
   {
@@ -43,6 +44,13 @@ const columnDefinition = [
     dataFormat: "date",
     isSelect: false,
   },
+  {
+    id: 4,
+    formattedName: "Opções",
+    rowname: "options",
+    dataFormat: "option",
+    isSelect: false,
+  },
 ];
 
 const Home = () => {
@@ -57,6 +65,18 @@ const Home = () => {
 };
 
 const UserAvatar = () => {
+  const [user, setUser] = useState({} as any);
+
+  useEffect(() => {
+    fetch(
+      "https://economize-023-api-521a6e433d2a.herokuapp.com/api/v1/user/?user.id=1"
+    ).then((data) => {
+      data.json().then((dataJson) => {
+        setUser(dataJson);
+      });
+    });
+  }, []);
+
   return (
     <Paper
       elevation={3}
@@ -77,7 +97,7 @@ const UserAvatar = () => {
         sx={{ width: 50, height: 50, margin: "auto" }}
       />
       <Typography variant="h6" gutterBottom>
-        Vinicius de Jesus
+        {user.name}
       </Typography>
     </Paper>
   );
@@ -95,22 +115,60 @@ const DynamicTable = () => {
   const { handleSubmit, control } = useForm();
 
   const handleFormSubmit = (data: any) => {
+    console.log(data);
     setRows((curRows) => [...curRows, data]);
   };
+
+  useEffect(() => {
+    axios
+      .get(
+        "https://economize-023-api-521a6e433d2a.herokuapp.com/api/v1/user/records",
+        { params: { "user.id": 2 } }
+      )
+      .then((response) => {
+        const recordData = response.data.map(
+          (record: { value: any; recordDate: any; type: any }) => {
+            return {
+              value: JSON.stringify(record.value),
+              date: record.recordDate,
+              description: JSON.stringify(record.type),
+              type: JSON.stringify(record.type),
+            } as RowData;
+          }
+        );
+
+        setRows((curRows) => [...curRows, ...recordData]);
+      });
+  }, []);
 
   return (
     <div style={{ height: "100%" }}>
       <TotalValueSummary rows={rows} />
       <DataGrid
-        rows={rows}
-        getRowId={(row) => row.description + row.value + row.type}
+        rows={rows as any[]}
+        getRowId={(row) =>
+          row.description + row.value + row.type + Math.random()
+        }
         style={{ background: "white", minHeight: "50vh" }}
-        columns={columnDefinition.map((definition, index) => ({
-          field: definition.rowname,
-          headerName: definition.formattedName,
-          width: 150,
-          key: index,
-        }))}
+        columns={columnDefinition.map((definition, index) => {
+          if (definition.dataFormat === "option") {
+            return {
+              field: definition.rowname,
+              headerName: definition.formattedName,
+              width: 150,
+              key: index,
+              renderCell: () => {
+                return <Button onClick={() => alert("teste")}>Click</Button>;
+              },
+            };
+          }
+          return {
+            field: definition.rowname,
+            headerName: definition.formattedName,
+            width: 150,
+            key: index,
+          };
+        })}
       />
       <div
         style={{
