@@ -8,7 +8,7 @@ import {
   MenuItem,
   Select,
 } from "@mui/material";
-import { DataGrid, GridValidRowModel } from "@mui/x-data-grid";
+import { DataGrid } from "@mui/x-data-grid";
 import Container from "@mui/material/Container";
 import { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
