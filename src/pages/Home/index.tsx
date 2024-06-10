@@ -1,3 +1,4 @@
+import React, { useEffect, useState } from "react";
 import {
   Typography,
   Avatar,
@@ -7,12 +8,14 @@ import {
   Box,
   MenuItem,
   Select,
+  Modal,
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import Container from "@mui/material/Container";
-import { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import axios from "axios";
+import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
 
 const columnDefinition = [
   {
@@ -104,22 +107,48 @@ const UserAvatar = () => {
 };
 
 interface RowData {
+  id: number;
   description: string;
   value: string;
   type: string;
   date: Date;
+  userId: number;
 }
 
 const DynamicTable = () => {
   const [rows, setRows] = useState<RowData[]>([]);
-  const { handleSubmit, control } = useForm();
+  const { handleSubmit, control, setValue } = useForm();
+  const [open, setOpen] = useState(false);
+  const [editData, setEditData] = useState<RowData | null>(null);
 
   const handleFormSubmit = (data: any) => {
-    console.log(data);
-    setRows((curRows) => [...curRows, data]);
+    createRecord(data);
+  };
+
+  const handleEditFormSubmit = (data: any) => {
+    if (editData) {
+      editRecord(editData.id, data);
+    }
+  };
+
+  const handleOpen = (row: RowData) => {
+    setEditData(row);
+    setValue("description", row.description);
+    setValue("value", row.value);
+    setValue("type", row.type);
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+    setEditData(null);
   };
 
   useEffect(() => {
+    updateRows();
+  }, []);
+
+  function updateRows() {
     axios
       .get(
         "https://economize-023-api-521a6e433d2a.herokuapp.com/api/v1/user/records",
@@ -127,19 +156,70 @@ const DynamicTable = () => {
       )
       .then((response) => {
         const recordData = response.data.map(
-          (record: { value: any; recordDate: any; type: any }) => {
+          (record: {
+            id: number;
+            value: any;
+            recordDate: any;
+            type: any;
+            description: string;
+            userId: number;
+          }) => {
             return {
+              id: record.id,
               value: JSON.stringify(record.value),
               date: record.recordDate,
-              description: JSON.stringify(record.type),
+              description: JSON.stringify(record.description),
               type: JSON.stringify(record.type),
+              userId: record.userId,
             } as RowData;
           }
         );
 
-        setRows((curRows) => [...curRows, ...recordData]);
+        setRows(() => recordData);
       });
-  }, []);
+  }
+
+  function deleteRecord(row: any) {
+    axios
+      .delete(
+        `https://economize-023-api-521a6e433d2a.herokuapp.com/api/v1/record/${row.id}`,
+        { params: { "user.id": row.userId } }
+      )
+      .then(() => {
+        updateRows();
+      });
+  }
+
+  function editRecord(id: number, data: any) {
+    axios
+      .patch(
+        `https://economize-023-api-521a6e433d2a.herokuapp.com/api/v1/record/${id}`,
+        {
+          value: data.value,
+          type: data.type === "Gasto" ? 1 : 2,
+          description: data.description,
+          userId: 2,
+        }
+      )
+      .then(() => {
+        updateRows();
+        handleClose();
+      });
+  }
+
+  function createRecord(data: any) {
+    axios
+      .post(
+        "https://economize-023-api-521a6e433d2a.herokuapp.com/api/v1/record",
+        {
+          value: data.value,
+          type: data.type === "GASTO" ? 1 : 2,
+          description: data.description,
+          userId: 2,
+        }
+      )
+      .then(() => updateRows());
+  }
 
   return (
     <div style={{ height: "100%" }}>
@@ -157,8 +237,17 @@ const DynamicTable = () => {
               headerName: definition.formattedName,
               width: 150,
               key: index,
-              renderCell: () => {
-                return <Button onClick={() => alert("teste")}>Click</Button>;
+              renderCell: (cell) => {
+                return (
+                  <>
+                    <DeleteIcon
+                      onClick={() => deleteRecord(cell.row)}
+                    ></DeleteIcon>
+                    <EditIcon
+                      onClick={() => handleOpen(cell.row as any)}
+                    ></EditIcon>
+                  </>
+                );
               },
             };
           }
@@ -238,6 +327,72 @@ const DynamicTable = () => {
       >
         Adicionar
       </Button>
+
+      <Modal open={open} onClose={handleClose}>
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: 400,
+            bgcolor: "background.paper",
+            border: "2px solid #000",
+            boxShadow: 24,
+            p: 4,
+          }}
+        >
+          <form onSubmit={handleSubmit(handleEditFormSubmit)}>
+            <Controller
+              name="description"
+              control={control}
+              defaultValue=""
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  variant="outlined"
+                  placeholder="Descrição"
+                  fullWidth
+                  style={{ marginBottom: "16px" }}
+                />
+              )}
+            />
+            <Controller
+              name="value"
+              control={control}
+              defaultValue=""
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  type="number"
+                  variant="outlined"
+                  placeholder="Valor"
+                  fullWidth
+                  style={{ marginBottom: "16px" }}
+                />
+              )}
+            />
+            <Controller
+              name="type"
+              control={control}
+              defaultValue=""
+              render={({ field }) => (
+                <Select {...field} fullWidth style={{ marginBottom: "16px" }}>
+                  <MenuItem key={"gasto"} value={"Gasto"}>
+                    Gasto
+                  </MenuItem>
+                  <MenuItem key={"renda"} value={"Renda"}>
+                    Renda
+                  </MenuItem>
+                </Select>
+              )}
+            />
+            <Button type="submit" variant="contained" color="primary" fullWidth>
+              Atualizar
+            </Button>
+          </form>
+        </Box>
+      </Modal>
     </div>
   );
 };
