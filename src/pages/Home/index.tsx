@@ -17,6 +17,7 @@ import axios from "axios";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import { GoogleLogin } from "@react-oauth/google";
+import { useUserContext } from "../../context/UserContext";
 
 const columnDefinition = [
   {
@@ -69,20 +70,7 @@ const Home = () => {
 };
 
 const UserAvatar = () => {
-  const [user, setUser] = useState({} as any);
-
-  function login(clientId: string, credentials: string) {
-    axios
-      .post(
-        "https://economize-023-api-521a6e433d2a.herokuapp.com/api/v1/login",
-        //"http://localhost:8080/api/v1/login",
-        { clientId, credentials }
-      )
-      .then((response) => {
-        console.log(response);
-        setUser(response.data);
-      });
-  }
+  const { login, user } = useUserContext();
 
   return (
     <Paper
@@ -109,12 +97,12 @@ const UserAvatar = () => {
       />
 
       <Avatar
-        src={user.avatarUrl}
+        src={user?.avatarUrl}
         alt="User Avatar"
         sx={{ width: 50, height: 50, margin: "auto" }}
       />
       <Typography variant="h6" gutterBottom>
-        {user.name}
+        {user?.name}
       </Typography>
     </Paper>
   );
