@@ -16,6 +16,7 @@ import { useForm, Controller } from "react-hook-form";
 import axios from "axios";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
+import { GoogleLogin } from "@react-oauth/google";
 
 const columnDefinition = [
   {
@@ -80,6 +81,12 @@ const UserAvatar = () => {
     });
   }, []);
 
+  function login(clientId: string, credentials: string) {
+    axios
+      .post("http://localhost:8080/api/v1/login", { clientId, credentials })
+      .then((response) => console.log(response));
+  }
+
   return (
     <Paper
       elevation={3}
@@ -94,6 +101,16 @@ const UserAvatar = () => {
         alignItems: "center",
       }}
     >
+      <GoogleLogin
+        onSuccess={(credentialResponse) => {
+          console.log(credentialResponse);
+          login(credentialResponse.clientId!, credentialResponse.credential!);
+        }}
+        onError={() => {
+          console.log("Login Failed");
+        }}
+      />
+
       <Avatar
         src="/avatar/image.png"
         alt="User Avatar"
