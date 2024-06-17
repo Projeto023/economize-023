@@ -83,7 +83,10 @@ const UserAvatar = () => {
 
   function login(clientId: string, credentials: string) {
     axios
-      .post("http://localhost:8080/api/v1/login", { clientId, credentials })
+      .post(
+        "https://economize-023-api-521a6e433d2a.herokuapp.com/api/v1/login",
+        { clientId, credentials }
+      )
       .then((response) => console.log(response));
   }
 
