@@ -71,23 +71,17 @@ const Home = () => {
 const UserAvatar = () => {
   const [user, setUser] = useState({} as any);
 
-  useEffect(() => {
-    fetch(
-      "https://economize-023-api-521a6e433d2a.herokuapp.com/api/v1/user/?user.id=1"
-    ).then((data) => {
-      data.json().then((dataJson) => {
-        setUser(dataJson);
-      });
-    });
-  }, []);
-
   function login(clientId: string, credentials: string) {
     axios
       .post(
         "https://economize-023-api-521a6e433d2a.herokuapp.com/api/v1/login",
+        //"http://localhost:8080/api/v1/login",
         { clientId, credentials }
       )
-      .then((response) => console.log(response));
+      .then((response) => {
+        console.log(response);
+        setUser(response.data);
+      });
   }
 
   return (
@@ -115,7 +109,7 @@ const UserAvatar = () => {
       />
 
       <Avatar
-        src="/avatar/image.png"
+        src={user.avatarUrl}
         alt="User Avatar"
         sx={{ width: 50, height: 50, margin: "auto" }}
       />
