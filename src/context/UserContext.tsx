@@ -8,12 +8,14 @@ import React, {
 } from "react";
 import { User } from "../interfaces/UserInterfaces";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 // Define the type for the context value
 interface UserContextType {
   user: User;
   updateUser: (updatedUser: User) => void;
   login: (clientId: string, credentials: string) => void;
+  logout: () => void;
 }
 
 // Create the context with the defined type
@@ -62,11 +64,17 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       });
   };
 
+  const logout = () => {
+    localStorage.clear();
+    window.location.reload();
+  };
+
   // Create the context value
   const contextValue: UserContextType = {
     user,
     updateUser,
     login,
+    logout,
   };
 
   return (
