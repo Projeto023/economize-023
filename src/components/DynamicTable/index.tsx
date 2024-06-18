@@ -14,6 +14,7 @@ import { Controller, useForm } from "react-hook-form";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import TotalValueSummary from "../TotalValueSummary";
+import { useUserContext } from "../../context/UserContext";
 
 interface RowData {
   id: number;
@@ -64,6 +65,7 @@ const columnDefinition = [
 ];
 
 const DynamicTable = () => {
+  const { user } = useUserContext();
   const [rows, setRows] = useState<RowData[]>([]);
   const { handleSubmit, control, setValue } = useForm();
   const [open, setOpen] = useState(false);
@@ -100,7 +102,7 @@ const DynamicTable = () => {
     axios
       .get(
         "https://economize-023-api-521a6e433d2a.herokuapp.com/api/v1/user/records",
-        { params: { "user.id": 2 } }
+        { params: { "user.id": user.id } }
       )
       .then((response) => {
         const recordData = response.data.map(
@@ -131,7 +133,7 @@ const DynamicTable = () => {
     axios
       .delete(
         `https://economize-023-api-521a6e433d2a.herokuapp.com/api/v1/record/${row.id}`,
-        { params: { "user.id": row.userId } }
+        { params: { "user.id": user.id } }
       )
       .then(() => {
         updateRows();
@@ -146,7 +148,7 @@ const DynamicTable = () => {
           value: data.value,
           type: data.type === "Gasto" ? 1 : 2,
           description: data.description,
-          userId: 2,
+          userId: user.id,
         }
       )
       .then(() => {
@@ -163,7 +165,7 @@ const DynamicTable = () => {
           value: data.value,
           type: data.type === "GASTO" ? 1 : 2,
           description: data.description,
-          userId: 2,
+          userId: user.id,
         }
       )
       .then(() => updateRows());
