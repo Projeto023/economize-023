@@ -118,7 +118,7 @@ const DynamicTable = () => {
               id: record.id,
               value: JSON.stringify(record.value),
               date: record.recordDate,
-              description: JSON.stringify(record.description),
+              description: record.description,
               type: JSON.stringify(record.type),
               userId: record.userId,
             } as RowData;
