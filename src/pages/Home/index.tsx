@@ -27,7 +27,6 @@ const Home = () => {
     >
       <GoogleLogin
         onSuccess={(credentialResponse) => {
-          console.log(credentialResponse);
           login(credentialResponse.clientId!, credentialResponse.credential!);
         }}
         onError={() => {

@@ -59,7 +59,6 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
         { clientId, credentials }
       )
       .then((response) => {
-        console.log(response);
         updateUser(response.data);
       });
   };

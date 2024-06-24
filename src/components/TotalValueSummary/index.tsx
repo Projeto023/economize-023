@@ -14,11 +14,11 @@ const TotalValueSummary = ({ rows }: { rows: RowData[] }) => {
     let total = 0;
     rows.forEach((row, index) => {
       const rowValue = Number(row.value);
-      const isExpense = row.type === "Gasto";
+      const isExpense = row.type == "GASTO";
       if (isExpense) {
-        total -= rowValue;
-      } else {
         total += rowValue;
+      } else {
+        total -= rowValue;
       }
     });
     return total;

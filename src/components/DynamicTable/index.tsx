@@ -119,7 +119,7 @@ const DynamicTable = () => {
               value: JSON.stringify(record.value),
               date: record.recordDate,
               description: record.description,
-              type: JSON.stringify(record.type),
+              type: record.type === 1 ? "GASTO" : "RENDA",
               userId: record.userId,
             } as RowData;
           }
@@ -158,6 +158,7 @@ const DynamicTable = () => {
   }
 
   function createRecord(data: any) {
+    console.log(data);
     axios
       .post(
         "https://economize-023-api-521a6e433d2a.herokuapp.com/api/v1/record",
@@ -166,6 +167,7 @@ const DynamicTable = () => {
           type: data.type === "GASTO" ? 1 : 2,
           description: data.description,
           userId: user.id,
+          recordDate: "2024-06-16 20:30:47.352",
         }
       )
       .then(() => updateRows());
@@ -259,6 +261,7 @@ const DynamicTable = () => {
               onChange={(e) => field.onChange(e.target.value)}
               value={field.value || "Gasto"}
               style={{ backgroundColor: "white" }}
+              defaultValue={"Gasto"}
             >
               <MenuItem key={"gasto"} value={"Gasto"}>
                 Gasto
@@ -325,7 +328,7 @@ const DynamicTable = () => {
             <Controller
               name="type"
               control={control}
-              defaultValue=""
+              defaultValue="Gasto"
               render={({ field }) => (
                 <Select {...field} fullWidth style={{ marginBottom: "16px" }}>
                   <MenuItem key={"gasto"} value={"Gasto"}>
