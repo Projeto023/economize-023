@@ -3,7 +3,7 @@ import { Box, Typography } from "@mui/material";
 interface RowData {
   id: number;
   description: string;
-  value: string;
+  value: number;
   type: string;
   date: Date;
   userId: number;

@@ -19,7 +19,7 @@ import { useUserContext } from "../../context/UserContext";
 interface RowData {
   id: number;
   description: string;
-  value: string;
+  value: number;
   type: string;
   date: Date;
   userId: number;
@@ -37,7 +37,7 @@ const columnDefinition = [
     id: 2,
     formattedName: "Valor",
     rowname: "value",
-    dataFormat: "number",
+    dataFormat: "currency",
     isSelect: false,
   },
   {
@@ -116,7 +116,7 @@ const DynamicTable = () => {
           }) => {
             return {
               id: record.id,
-              value: JSON.stringify(record.value),
+              value: record.value,
               date: record.recordDate,
               description: record.description,
               type: record.type === 1 ? "GASTO" : "RENDA",
@@ -158,7 +158,6 @@ const DynamicTable = () => {
   }
 
   function createRecord(data: any) {
-    console.log(data);
     axios
       .post(
         "https://economize-023-api-521a6e433d2a.herokuapp.com/api/v1/record",
@@ -201,6 +200,22 @@ const DynamicTable = () => {
                   </>
                 );
               },
+            };
+          } else if (definition.dataFormat === "currency") {
+            return {
+              field: definition.rowname,
+              headerName: definition.formattedName,
+              width: 150,
+              key: index,
+              valueFormatter: (value) => `R$${value}`,
+            };
+          } else if (definition.dataFormat === "date") {
+            return {
+              field: definition.rowname,
+              headerName: definition.formattedName,
+              width: 150,
+              key: index,
+              valueFormatter: (value: string) => value.split("T")[0],
             };
           }
           return {
