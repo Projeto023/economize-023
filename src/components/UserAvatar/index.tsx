@@ -36,7 +36,8 @@ const UserAvatar = () => {
 
   useEffect(() => {
     axios
-      .get(`http://localhost:8080/api/v1/group?user.id=${user.id}`)
+      //.get(`http://localhost:8080/api/v1/group?user.id=${user.id}`)
+      .get(`https://economize-023-api-521a6e433d2a.herokuapp.com/api/v1/group?user.id=${user.id}`)
       .then((response) => {
         setNotifications(response.data.records);
       });
@@ -44,7 +45,8 @@ const UserAvatar = () => {
 
   useEffect(() => {
     axios
-      .get(`http://localhost:8080/api/v1/group?user.id=${user.id}`)
+      //.get(`http://localhost:8080/api/v1/group?user.id=${user.id}`)
+      .get(`https://economize-023-api-521a6e433d2a.herokuapp.com/api/v1/group?user.id=${user.id}`)
       .then((response) => {
         setNotifications(response.data.records);
       });
