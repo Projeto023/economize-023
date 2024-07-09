@@ -38,7 +38,7 @@ const UserAvatar = () => {
     axios
       .get(`http://localhost:8080/api/v1/group?user.id=${user.id}`)
       .then((response) => {
-        setNotifications(response.data);
+        setNotifications(response.data.records);
       });
   }, []);
 
@@ -46,7 +46,7 @@ const UserAvatar = () => {
     axios
       .get(`http://localhost:8080/api/v1/group?user.id=${user.id}`)
       .then((response) => {
-        setNotifications(response.data);
+        setNotifications(response.data.records);
       });
   }, [notificationModalOpen]);
 

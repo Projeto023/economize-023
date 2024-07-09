@@ -105,7 +105,7 @@ const DynamicTable = () => {
         { params: { "user.id": user.id } }
       )
       .then((response) => {
-        const recordData = response.data.map(
+        const recordData = response.data.records.map(
           (record: {
             id: number;
             value: any;

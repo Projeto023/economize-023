@@ -6,7 +6,7 @@ const headers = { Authorization: `Bearer ${accessToken}` };
 axios
   .get(apiUrl, { headers })
   .then((response) => {
-    console.log("Labels:", response.data);
+    console.log("Labels:", response.data.records);
   })
   .catch((error) => {
     console.error("Error fetching labels:", error);

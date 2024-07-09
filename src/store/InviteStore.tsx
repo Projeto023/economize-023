@@ -17,7 +17,7 @@ export const inviteToGroup = async ({
         groupId,
       }
     );
-    return response.data;
+    return response.data.records;
   } catch (error) {
     console.error("Error inviting user to group:", error);
     throw error;
