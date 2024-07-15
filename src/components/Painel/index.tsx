@@ -12,6 +12,8 @@ import {
   Select,
   TextField,
   Typography,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import { inviteToGroup } from "../../store/InviteStore";
 import { useEffect, useState } from "react";
@@ -26,6 +28,9 @@ import axiosInstance from "../../config/axiosConfig";
 const Painel = () => {
   const [email, setEmail] = useState("");
   const [inviteGroupId, setInviteGroupId] = useState(1);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
   const { user, logout } = useUserContext();
 
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
@@ -135,7 +140,13 @@ const Painel = () => {
       </Modal>
 
       <Typography variant="h3" color="primary">
-        <Box sx={{ display: "flex", gap: 2 }}>
+        <Box
+          sx={{
+            display: "flex",
+            gap: 2,
+            flexDirection: isMobile ? "column" : "row",
+          }}
+        >
           <Button
             onClick={handleNotificationModalOpen}
             variant="contained"
@@ -146,9 +157,6 @@ const Painel = () => {
           <Button onClick={logout} variant="contained" color="secondary">
             Sair
           </Button>
-          {/* <IconButton color="inherit" onClick={handleNotificationModalOpen}>
-            <NotificationsIcon />
-          </IconButton> */}
         </Box>
 
         <Modal
