@@ -6,15 +6,17 @@ import {
   Modal,
   Box,
   Typography,
+  Tabs,
+  Tab
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
-import axios from "axios";
 import { useState, useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import TotalValueSummary from "../TotalValueSummary";
 import { useUserContext } from "../../context/UserContext";
+import axiosInstance from "../../config/axiosConfig";
 
 interface RowData {
   id: number;
@@ -99,9 +101,9 @@ const DynamicTable = () => {
   }, []);
 
   function updateRows() {
-    axios
+    axiosInstance
       .get(
-        "https://economize-023-api-521a6e433d2a.herokuapp.com/api/v1/user/records",
+        "/api/v1/user/records",
         { params: { "user.id": user.id } }
       )
       .then((response) => {
@@ -130,9 +132,9 @@ const DynamicTable = () => {
   }
 
   function deleteRecord(row: any) {
-    axios
+    axiosInstance
       .delete(
-        `https://economize-023-api-521a6e433d2a.herokuapp.com/api/v1/record/${row.id}`,
+        `/api/v1/record/${row.id}`,
         { params: { "user.id": user.id } }
       )
       .then(() => {
@@ -141,9 +143,9 @@ const DynamicTable = () => {
   }
 
   function editRecord(id: number, data: any) {
-    axios
+    axiosInstance
       .patch(
-        `https://economize-023-api-521a6e433d2a.herokuapp.com/api/v1/record/${id}`,
+        `/api/v1/record/${id}`,
         {
           value: data.value,
           type: data.type === "Gasto" ? 1 : 2,
@@ -158,9 +160,9 @@ const DynamicTable = () => {
   }
 
   function createRecord(data: any) {
-    axios
+    axiosInstance
       .post(
-        "https://economize-023-api-521a6e433d2a.herokuapp.com/api/v1/record",
+        "/api/v1/record",
         {
           value: data.value,
           type: data.type === "GASTO" ? 1 : 2,
