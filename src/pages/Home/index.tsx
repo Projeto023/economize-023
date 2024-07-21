@@ -1,6 +1,7 @@
 import Container from "@mui/material/Container";
 
 import DynamicTable from "../../components/DynamicTable";
+import DynamicTabs from "../../components/Tab";
 import UserAvatar from "../../components/UserAvatar";
 import { GoogleLogin } from "@react-oauth/google";
 import { useUserContext } from "../../context/UserContext";
@@ -11,7 +12,7 @@ const Home = () => {
     <Container component="main" maxWidth="md" style={{ height: "100vh" }}>
       <div style={{ minHeight: "100%" }}>
         <UserAvatar />
-        <DynamicTable />
+        <DynamicTabs />
       </div>
     </Container>
   ) : (

@@ -7,7 +7,7 @@ import React, {
   ReactNode,
 } from "react";
 import { User } from "../interfaces/UserInterfaces";
-import axios from "axios";
+import axiosInstance from "../config/axiosConfig";
 import { useNavigate } from "react-router-dom";
 
 // Define the type for the context value
@@ -52,10 +52,9 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   };
 
   const login = (clientId: string, credentials: string) => {
-    axios
+    axiosInstance
       .post(
-        "https://economize-023-api-521a6e433d2a.herokuapp.com/api/v1/login",
-        //"http://localhost:8080/api/v1/login",
+        "/api/v1/login",
         { clientId, credentials }
       )
       .then((response) => {
