@@ -1,26 +1,9 @@
-import { useEffect, useState } from "react";
-import {
-  Paper,
-  Avatar,
-  Typography,
-  Container,
-  Button,
-  Modal,
-  Box,
-  TextField,
-  IconButton,
-  List,
-  ListItem,
-  ListItemText,
-} from "@mui/material";
+import { Paper, Avatar, Typography, Container } from "@mui/material";
 import { useUserContext } from "../../context/UserContext";
-import { inviteToGroup } from "../../store/InviteStore";
-import axios from "axios";
-import { NotificationUserGroup } from "../../interfaces/UserGroupInterfaces";
-import Painel from "../Painel";
+import Options from "../Options";
 
-const UserAvatar = () => {
-  const { user, logout } = useUserContext();
+const Header = () => {
+  const { user } = useUserContext();
 
   return (
     <Container style={{ display: "flex", flexDirection: "row" }}>
@@ -62,10 +45,10 @@ const UserAvatar = () => {
           width: "50%",
         }}
       >
-        <Painel />
+        <Options />
       </Paper>
     </Container>
   );
 };
 
-export default UserAvatar;
+export default Header;
