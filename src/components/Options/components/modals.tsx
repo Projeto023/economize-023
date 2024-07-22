@@ -12,7 +12,11 @@ import {
   List,
   ListItem,
   ListItemText,
+  CircularProgress,
+  ListItemButton,
+  IconButton,
 } from "@mui/material";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 interface Notification {
   userId: number;
@@ -100,6 +104,7 @@ interface GroupModalProps {
   handleCreateGroupModalOpen: () => void;
   handleInviteModalOpen: () => void;
   isMobile: boolean;
+  handleRecordClick: (groupId: number) => void;
 }
 
 export const GroupModal: React.FC<GroupModalProps> = ({
@@ -110,6 +115,7 @@ export const GroupModal: React.FC<GroupModalProps> = ({
   handleCreateGroupModalOpen,
   handleInviteModalOpen,
   isMobile,
+  handleRecordClick,
 }) => (
   <Modal
     key={"Grupos"}
@@ -135,17 +141,24 @@ export const GroupModal: React.FC<GroupModalProps> = ({
       <List>
         {notifications.map((notification) => (
           <ListItem key={notification.userId}>
-            <ListItemText
-              primary={`Grupo: ${notification.groupName}`}
-              secondary={`Entrou em: ${new Date(
-                notification.createdAt
-              ).toLocaleString()}`}
-            />
+            <ListItemButton
+              onClick={() => handleRecordClick(notification.groupId)}
+            >
+              <ListItemText
+                primary={`Grupo: ${notification.groupName}`}
+                secondary={`Entrou em: ${new Date(
+                  notification.createdAt
+                ).toLocaleString()}`}
+              />
+            </ListItemButton>
             {!notification.accepted && (
               <Button
                 variant="contained"
                 color="primary"
-                onClick={() => handleAcceptInvite(notification)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleAcceptInvite(notification);
+                }}
               >
                 Aceitar
               </Button>
@@ -238,3 +251,71 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
     </Modal>
   );
 };
+
+interface GroupDetailsModalProps {
+  open: boolean;
+  onClose: () => void;
+  groupDetails: any;
+  loading: boolean;
+  handleRemoveUser: () => void;
+}
+
+export const GroupDetailsModal: React.FC<GroupDetailsModalProps> = ({
+  open,
+  onClose,
+  groupDetails,
+  loading,
+  handleRemoveUser,
+}) => (
+  <Modal open={open} onClose={onClose}>
+    <Box
+      sx={{
+        position: "absolute",
+        top: "50%",
+        left: "50%",
+        transform: "translate(-50%, -50%)",
+        width: "90%",
+        maxWidth: 500,
+        bgcolor: "background.paper",
+        border: "1px solid #ccc",
+        boxShadow: 24,
+        p: 4,
+        borderRadius: 1,
+      }}
+    >
+      <Typography variant="h6" component="h2" sx={{ mb: 2 }}>
+        Detalhes do Grupo
+      </Typography>
+      {loading ? (
+        <Box sx={{ display: "flex", justifyContent: "center" }}>
+          <CircularProgress />
+        </Box>
+      ) : (
+        <List>
+          {groupDetails.map((user: any) => (
+            <ListItem
+              key={user.id}
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <Box>
+                <ListItemText primary={user.name} />
+                <ListItemText secondary={user.role} />
+              </Box>
+              <IconButton
+                edge="end"
+                aria-label="delete"
+                onClick={() => handleRemoveUser()}
+              >
+                <DeleteIcon />
+              </IconButton>
+            </ListItem>
+          ))}
+        </List>
+      )}
+    </Box>
+  </Modal>
+);

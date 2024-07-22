@@ -1,26 +1,16 @@
-import {
-  Box,
-  Button,
-  FormControl,
-  InputLabel,
-  List,
-  ListItem,
-  ListItemText,
-  MenuItem,
-  Modal,
-  Select,
-  TextField,
-  Typography,
-  useMediaQuery,
-  useTheme,
-} from "@mui/material";
+import { Box, Button, useMediaQuery, useTheme } from "@mui/material";
 import { inviteToGroup } from "../../store/InviteStore";
 import { useEffect, useState } from "react";
 import { useUserContext } from "../../context/UserContext";
 import { NotificationUserGroup } from "../../interfaces/UserGroupInterfaces";
 import axiosInstance from "../../config/axiosConfig";
 import { createGroup } from "../../store/GroupStore";
-import { CreateGroupModal, GroupModal, InviteModal } from "./components/modals";
+import {
+  CreateGroupModal,
+  GroupDetailsModal,
+  GroupModal,
+  InviteModal,
+} from "./components/modals";
 
 const Options: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -41,6 +31,31 @@ const Options: React.FC = () => {
   const [createGroupModalOpen, setCreateGroupModalOpen] = useState(false);
   const handleCreateGroupModalOpen = () => setCreateGroupModalOpen(true);
   const handleCreateGroupModalClose = () => setCreateGroupModalOpen(false);
+
+  const [groupDetailsModalOpen, setGroupDetailsModalOpen] = useState(false);
+  const [groupDetails, setGroupDetails] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const handleGroupDetailsModalClose = () => {
+    setGroupDetailsModalOpen(false);
+    setGroupDetails([]);
+  };
+
+  const handleRecordClick = async (groupId: number) => {
+    setLoading(true);
+    setGroupDetailsModalOpen(true);
+    try {
+      const response = await axiosInstance.get(
+        `/api/v1/group/users?group.id=${groupId}`
+      );
+      setGroupDetails(response.data.records);
+    } catch (error) {
+      console.error("Failed to fetch group details", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRemoveUser = async () => {};
 
   const [notifications, setNotifications] = useState(
     [] as NotificationUserGroup[]
@@ -145,11 +160,19 @@ const Options: React.FC = () => {
         handleCreateGroupModalOpen={handleCreateGroupModalOpen}
         handleInviteModalOpen={handleInviteModalOpen}
         isMobile={isMobile}
+        handleRecordClick={handleRecordClick}
       />
       <CreateGroupModal
         createGroupModalOpen={createGroupModalOpen}
         handleCreateGroup={handleCreateGroup}
         handleCreateGroupModalModalClose={handleCreateGroupModalClose}
+      />
+      <GroupDetailsModal
+        open={groupDetailsModalOpen}
+        onClose={handleGroupDetailsModalClose}
+        groupDetails={groupDetails}
+        loading={loading}
+        handleRemoveUser={handleRemoveUser}
       />
     </>
   );
