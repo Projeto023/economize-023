@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Button,
@@ -17,6 +17,10 @@ import {
   IconButton,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
+import { NotificationUserGroup } from "../../../interfaces/UserGroupInterfaces";
+import { inviteToGroup } from "../../../store/InviteStore";
+import { useUserContext } from "../../../context/UserContext";
+import axiosInstance from "../../../config/axiosConfig";
 
 interface Notification {
   userId: number;
@@ -102,7 +106,7 @@ interface GroupModalProps {
   notifications: Notification[];
   handleAcceptInvite: (notification: Notification) => void;
   handleCreateGroupModalOpen: () => void;
-  handleInviteModalOpen: () => void;
+
   isMobile: boolean;
   handleRecordClick: (groupId: number) => void;
 }
@@ -113,7 +117,6 @@ export const GroupModal: React.FC<GroupModalProps> = ({
   notifications,
   handleAcceptInvite,
   handleCreateGroupModalOpen,
-  handleInviteModalOpen,
   isMobile,
   handleRecordClick,
 }) => (
@@ -179,13 +182,6 @@ export const GroupModal: React.FC<GroupModalProps> = ({
           color="primary"
         >
           Criar
-        </Button>
-        <Button
-          onClick={handleInviteModalOpen}
-          variant="contained"
-          color="primary"
-        >
-          Convidar
         </Button>
       </Box>
     </Box>
@@ -257,7 +253,7 @@ interface GroupDetailsModalProps {
   onClose: () => void;
   groupDetails: any;
   loading: boolean;
-  handleRemoveUser: () => void;
+  handleRemoveUserFromGroup: (userId: number) => void;
 }
 
 export const GroupDetailsModal: React.FC<GroupDetailsModalProps> = ({
@@ -265,57 +261,111 @@ export const GroupDetailsModal: React.FC<GroupDetailsModalProps> = ({
   onClose,
   groupDetails,
   loading,
-  handleRemoveUser,
-}) => (
-  <Modal open={open} onClose={onClose}>
-    <Box
-      sx={{
-        position: "absolute",
-        top: "50%",
-        left: "50%",
-        transform: "translate(-50%, -50%)",
-        width: "90%",
-        maxWidth: 500,
-        bgcolor: "background.paper",
-        border: "1px solid #ccc",
-        boxShadow: 24,
-        p: 4,
-        borderRadius: 1,
-      }}
-    >
-      <Typography variant="h6" component="h2" sx={{ mb: 2 }}>
-        Detalhes do Grupo
-      </Typography>
-      {loading ? (
-        <Box sx={{ display: "flex", justifyContent: "center" }}>
-          <CircularProgress />
+  handleRemoveUserFromGroup,
+}) => {
+  const { user } = useUserContext();
+
+  const [email, setEmail] = useState("");
+
+  const [inviteGroupId, setInviteGroupId] = useState(1);
+
+  const [inviteModalOpen, setInviteModalOpen] = useState(false);
+  const handleInviteModalOpen = () => setInviteModalOpen(true);
+  const handleInviteModalClose = () => setInviteModalOpen(false);
+
+  const [notifications, setNotifications] = useState(
+    [] as NotificationUserGroup[]
+  );
+
+  useEffect(() => {
+    axiosInstance.get(`/api/v1/group?user.id=${user.id}`).then((response) => {
+      setNotifications(response.data.records);
+    });
+  }, []);
+
+  const handleInvite = async () => {
+    try {
+      await inviteToGroup({
+        email,
+        groupId: Number(inviteGroupId),
+        userId: user.id,
+      });
+      handleInviteModalClose();
+    } catch (error) {
+      console.error("Failed to invite user", error);
+    }
+  };
+
+  return (
+    <>
+      <Modal open={open} onClose={onClose}>
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: "90%",
+            maxWidth: 500,
+            bgcolor: "background.paper",
+            border: "1px solid #ccc",
+            boxShadow: 24,
+            p: 4,
+            borderRadius: 1,
+          }}
+        >
+          <Typography variant="h6" component="h2" sx={{ mb: 2 }}>
+            Detalhes do Grupo
+          </Typography>
+          {loading ? (
+            <Box sx={{ display: "flex", justifyContent: "center" }}>
+              <CircularProgress />
+            </Box>
+          ) : (
+            <List>
+              {groupDetails.map((user: any) => (
+                <ListItem
+                  key={user.id}
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
+                  <Box>
+                    <ListItemText primary={user.name} />
+                    <ListItemText secondary={user.role} />
+                  </Box>
+                  <IconButton
+                    edge="end"
+                    aria-label="delete"
+                    onClick={() => handleRemoveUserFromGroup(user.id)}
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                </ListItem>
+              ))}
+            </List>
+          )}
+          <Button
+            onClick={handleInviteModalOpen}
+            variant="contained"
+            color="primary"
+          >
+            Convidar
+          </Button>
         </Box>
-      ) : (
-        <List>
-          {groupDetails.map((user: any) => (
-            <ListItem
-              key={user.id}
-              sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <Box>
-                <ListItemText primary={user.name} />
-                <ListItemText secondary={user.role} />
-              </Box>
-              <IconButton
-                edge="end"
-                aria-label="delete"
-                onClick={() => handleRemoveUser()}
-              >
-                <DeleteIcon />
-              </IconButton>
-            </ListItem>
-          ))}
-        </List>
-      )}
-    </Box>
-  </Modal>
-);
+      </Modal>
+      <InviteModal
+        inviteModalOpen={inviteModalOpen}
+        handleInviteModalClose={handleInviteModalClose}
+        notifications={notifications}
+        inviteGroupId={inviteGroupId}
+        setInviteGroupId={setInviteGroupId}
+        email={email}
+        setEmail={setEmail}
+        handleInvite={handleInvite}
+      />
+    </>
+  );
+};

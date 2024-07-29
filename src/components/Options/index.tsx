@@ -1,5 +1,4 @@
 import { Box, Button, useMediaQuery, useTheme } from "@mui/material";
-import { inviteToGroup } from "../../store/InviteStore";
 import { useEffect, useState } from "react";
 import { useUserContext } from "../../context/UserContext";
 import { NotificationUserGroup } from "../../interfaces/UserGroupInterfaces";
@@ -9,20 +8,13 @@ import {
   CreateGroupModal,
   GroupDetailsModal,
   GroupModal,
-  InviteModal,
 } from "./components/modals";
 
 const Options: React.FC = () => {
-  const [email, setEmail] = useState("");
-  const [inviteGroupId, setInviteGroupId] = useState(1);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const { user, logout } = useUserContext();
-
-  const [inviteModalOpen, setInviteModalOpen] = useState(false);
-  const handleInviteModalOpen = () => setInviteModalOpen(true);
-  const handleInviteModalClose = () => setInviteModalOpen(false);
 
   const [notificationModalOpen, setNotificationModalOpen] = useState(false);
   const handleNotificationModalOpen = () => setNotificationModalOpen(true);
@@ -35,14 +27,23 @@ const Options: React.FC = () => {
   const [groupDetailsModalOpen, setGroupDetailsModalOpen] = useState(false);
   const [groupDetails, setGroupDetails] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [selectedGroupId, setSelectedGroupId] = useState(0);
   const handleGroupDetailsModalClose = () => {
     setGroupDetailsModalOpen(false);
     setGroupDetails([]);
   };
 
+  const handleRemoveUserFromGroup = async (userId: number) => {
+    await axiosInstance.delete(
+      `/api/v1/group/${selectedGroupId}/user/${userId}?currentUser.id=${user.id}`
+    );
+    handleRecordClick(selectedGroupId);
+  };
+
   const handleRecordClick = async (groupId: number) => {
     setLoading(true);
     setGroupDetailsModalOpen(true);
+    setSelectedGroupId(groupId);
     try {
       const response = await axiosInstance.get(
         `/api/v1/group/users?group.id=${groupId}`
@@ -52,25 +53,6 @@ const Options: React.FC = () => {
       console.error("Failed to fetch group details", error);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleRemoveUser = async () => {};
-
-  const [notifications, setNotifications] = useState(
-    [] as NotificationUserGroup[]
-  );
-
-  const handleInvite = async () => {
-    try {
-      await inviteToGroup({
-        email,
-        groupId: Number(inviteGroupId),
-        userId: user.id,
-      });
-      handleInviteModalClose();
-    } catch (error) {
-      console.error("Failed to invite user", error);
     }
   };
 
@@ -85,6 +67,10 @@ const Options: React.FC = () => {
       console.error("Failed to create user", error);
     }
   };
+
+  const [notifications, setNotifications] = useState(
+    [] as NotificationUserGroup[]
+  );
 
   useEffect(() => {
     axiosInstance.get(`/api/v1/group?user.id=${user.id}`).then((response) => {
@@ -142,23 +128,12 @@ const Options: React.FC = () => {
         </Button>
       </Box>
 
-      <InviteModal
-        inviteModalOpen={inviteModalOpen}
-        handleInviteModalClose={handleInviteModalClose}
-        notifications={notifications}
-        inviteGroupId={inviteGroupId}
-        setInviteGroupId={setInviteGroupId}
-        email={email}
-        setEmail={setEmail}
-        handleInvite={handleInvite}
-      />
       <GroupModal
         notificationModalOpen={notificationModalOpen}
         handleNotificationModalClose={handleNotificationModalClose}
         notifications={notifications}
         handleAcceptInvite={handleAcceptInvite}
         handleCreateGroupModalOpen={handleCreateGroupModalOpen}
-        handleInviteModalOpen={handleInviteModalOpen}
         isMobile={isMobile}
         handleRecordClick={handleRecordClick}
       />
@@ -172,7 +147,7 @@ const Options: React.FC = () => {
         onClose={handleGroupDetailsModalClose}
         groupDetails={groupDetails}
         loading={loading}
-        handleRemoveUser={handleRemoveUser}
+        handleRemoveUserFromGroup={handleRemoveUserFromGroup}
       />
     </>
   );
