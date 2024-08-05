@@ -12,13 +12,13 @@ interface RowData {
 const TotalValueSummary = ({ rows }: { rows: RowData[] }) => {
   const calculateTotalValor = () => {
     let total = 0;
-    rows.forEach((row, index) => {
+    rows.forEach((row) => {
       const rowValue = Number(row.value);
       const isExpense = row.type == "GASTO";
       if (isExpense) {
-        total += rowValue;
-      } else {
         total -= rowValue;
+      } else {
+        total += rowValue;
       }
     });
     return total;

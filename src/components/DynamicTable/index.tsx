@@ -7,7 +7,7 @@ import {
   Box,
   Typography,
   Tabs,
-  Tab
+  Tab,
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { useState, useEffect } from "react";
@@ -88,6 +88,7 @@ const DynamicTable = () => {
     setValue("description", row.description);
     setValue("value", row.value);
     setValue("type", row.type);
+    setValue("date", row.date);
     setOpen(true);
   };
 
@@ -102,10 +103,7 @@ const DynamicTable = () => {
 
   function updateRows() {
     axiosInstance
-      .get(
-        "/api/v1/user/records",
-        { params: { "user.id": user.id } }
-      )
+      .get("/api/v1/user/records", { params: { "user.id": user.id } })
       .then((response) => {
         const recordData = response.data.records.map(
           (record: {
@@ -133,10 +131,7 @@ const DynamicTable = () => {
 
   function deleteRecord(row: any) {
     axiosInstance
-      .delete(
-        `/api/v1/record/${row.id}`,
-        { params: { "user.id": user.id } }
-      )
+      .delete(`/api/v1/record/${row.id}`, { params: { "user.id": user.id } })
       .then(() => {
         updateRows();
       });
@@ -144,15 +139,12 @@ const DynamicTable = () => {
 
   function editRecord(id: number, data: any) {
     axiosInstance
-      .patch(
-        `/api/v1/record/${id}`,
-        {
-          value: data.value,
-          type: data.type === "Gasto" ? 1 : 2,
-          description: data.description,
-          userId: user.id,
-        }
-      )
+      .patch(`/api/v1/record/${id}`, {
+        value: data.value,
+        type: data.type === "Gasto" ? 1 : 2,
+        description: data.description,
+        userId: user.id,
+      })
       .then(() => {
         updateRows();
         handleClose();
@@ -160,18 +152,25 @@ const DynamicTable = () => {
   }
 
   function createRecord(data: any) {
-    axiosInstance
-      .post(
-        "/api/v1/record",
-        {
-          value: data.value,
-          type: data.type === "GASTO" ? 1 : 2,
-          description: data.description,
-          userId: user.id,
-          recordDate: "2024-06-16 20:30:47.352",
-        }
-      )
-      .then(() => updateRows());
+    const recordToBeCreated = {
+      value: data.value,
+      type: data.type.toUpperCase() === "GASTO" ? 1 : 2,
+      description: data.description,
+      userId: user.id,
+      recordDate: data.date,
+    };
+
+    const isValidRecord = Object.values(recordToBeCreated).every(
+      (value) => value !== null && value !== undefined && value !== ""
+    );
+
+    if (isValidRecord) {
+      axiosInstance
+        .post("/api/v1/record", recordToBeCreated)
+        .then(() => updateRows());
+    } else {
+      console.error("One or more fields are missing or invalid");
+    }
   }
 
   return (
@@ -239,7 +238,7 @@ const DynamicTable = () => {
         <Controller
           name={`type`}
           control={control}
-          defaultValue=""
+          defaultValue="Gasto"
           render={({ field }) => (
             <Select
               {...field}
@@ -289,6 +288,24 @@ const DynamicTable = () => {
           )}
         />
 
+        <Controller
+          name={`date`}
+          control={control}
+          defaultValue=""
+          render={({ field }) => (
+            <TextField
+              {...field}
+              type="date"
+              variant="outlined"
+              onChange={(e) => field.onChange(e.target.value)}
+              style={{ backgroundColor: "white" }}
+              InputLabelProps={{
+                shrink: true,
+              }}
+            />
+          )}
+        />
+
         <Button
           onClick={handleSubmit(handleFormSubmit)}
           variant="contained"
@@ -296,7 +313,6 @@ const DynamicTable = () => {
         >
           Adicionar
         </Button>
-        
       </div>
 
       <Modal open={open} onClose={handleClose}>
@@ -328,6 +344,7 @@ const DynamicTable = () => {
                 />
               )}
             />
+
             <Controller
               name="value"
               control={control}
@@ -343,6 +360,7 @@ const DynamicTable = () => {
                 />
               )}
             />
+
             <Controller
               name="type"
               control={control}
@@ -358,6 +376,25 @@ const DynamicTable = () => {
                 </Select>
               )}
             />
+
+            <Controller
+              name={`date`}
+              control={control}
+              defaultValue=""
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  type="date"
+                  variant="outlined"
+                  onChange={(e) => field.onChange(e.target.value)}
+                  style={{ backgroundColor: "white" }}
+                  InputLabelProps={{
+                    shrink: true,
+                  }}
+                />
+              )}
+            />
+
             <Button type="submit" variant="contained" color="primary" fullWidth>
               Atualizar
             </Button>
