@@ -232,11 +232,32 @@ const DynamicTable = () => {
         style={{
           display: "flex",
           flexDirection: "row",
-          margin: "1%",
           justifyContent: "space-between",
-          padding: "1em",
+          paddingTop: "1em",
         }}
       >
+        <Controller
+          name={`type`}
+          control={control}
+          defaultValue=""
+          render={({ field }) => (
+            <Select
+              {...field}
+              onChange={(e) => field.onChange(e.target.value)}
+              value={field.value || "Gasto"}
+              style={{ backgroundColor: "white" }}
+              defaultValue={"Gasto"}
+            >
+              <MenuItem key={"gasto"} value={"Gasto"}>
+                Gasto
+              </MenuItem>
+              <MenuItem key={"renda"} value={"Renda"}>
+                Renda
+              </MenuItem>
+            </Select>
+          )}
+        />
+
         <Controller
           name={`description`}
           control={control}
@@ -268,35 +289,15 @@ const DynamicTable = () => {
           )}
         />
 
-        <Controller
-          name={`type`}
-          control={control}
-          defaultValue=""
-          render={({ field }) => (
-            <Select
-              {...field}
-              onChange={(e) => field.onChange(e.target.value)}
-              value={field.value || "Gasto"}
-              style={{ backgroundColor: "white" }}
-              defaultValue={"Gasto"}
-            >
-              <MenuItem key={"gasto"} value={"Gasto"}>
-                Gasto
-              </MenuItem>
-              <MenuItem key={"renda"} value={"Renda"}>
-                Renda
-              </MenuItem>
-            </Select>
-          )}
-        />
+        <Button
+          onClick={handleSubmit(handleFormSubmit)}
+          variant="contained"
+          color="primary"
+        >
+          Adicionar
+        </Button>
+        
       </div>
-      <Button
-        onClick={handleSubmit(handleFormSubmit)}
-        variant="contained"
-        color="primary"
-      >
-        Adicionar
-      </Button>
 
       <Modal open={open} onClose={handleClose}>
         <Box
