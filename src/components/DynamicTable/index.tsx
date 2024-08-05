@@ -125,7 +125,13 @@ const DynamicTable = () => {
           }
         );
 
-        setRows(() => recordData);
+        setRows(() =>
+          recordData.sort((a: any, b: any) => {
+            const dateA: number = new Date(a.date).getTime();
+            const dateB: number = new Date(b.date).getTime();
+            return dateB - dateA;
+          })
+        );
       });
   }
 
@@ -182,6 +188,7 @@ const DynamicTable = () => {
           row.description + row.value + row.type + Math.random()
         }
         style={{ background: "white", minHeight: "50vh" }}
+        autoPageSize
         columns={columnDefinition.map((definition, index) => {
           if (definition.dataFormat === "option") {
             return {
