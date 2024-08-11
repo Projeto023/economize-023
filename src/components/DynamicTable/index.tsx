@@ -15,6 +15,7 @@ import { Controller, useForm } from "react-hook-form";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import TotalValueSummary from "../TotalValueSummary";
+import CurrencyTextField from "../CurrencyTextField";
 import { useUserContext } from "../../context/UserContext";
 import axiosInstance from "../../config/axiosConfig";
 
@@ -72,6 +73,7 @@ const DynamicTable = () => {
   const { handleSubmit, control, setValue } = useForm();
   const [open, setOpen] = useState(false);
   const [editData, setEditData] = useState<RowData | null>(null);
+  const today = new Date().toISOString().split('T')[0];
 
   const handleFormSubmit = (data: any) => {
     createRecord(data);
@@ -159,7 +161,7 @@ const DynamicTable = () => {
 
   function createRecord(data: any) {
     const recordToBeCreated = {
-      value: data.value,
+      value: parseFloat(data.value.replaceAll('.', '').replaceAll(',','.')),
       type: data.type.toUpperCase() === "GASTO" ? 1 : 2,
       description: data.description,
       userId: user.id,
@@ -215,7 +217,7 @@ const DynamicTable = () => {
               headerName: definition.formattedName,
               width: 150,
               key: index,
-              valueFormatter: (value) => `R$${value}`,
+              valueFormatter: (value: number) => `R$${value.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`,
             };
           } else if (definition.dataFormat === "date") {
             return {
@@ -282,15 +284,11 @@ const DynamicTable = () => {
         <Controller
           name={`value`}
           control={control}
-          defaultValue=""
+          defaultValue="0,00"
           render={({ field }) => (
-            <TextField
-              {...field}
-              type="number"
-              variant="outlined"
-              placeholder="Valor"
-              onChange={(e) => field.onChange(e.target.value)}
-              style={{ backgroundColor: "white" }}
+            <CurrencyTextField
+              value={field.value}
+              onChange={(value) => field.onChange(value)} // Pass the value to the react-hook-form controller
             />
           )}
         />
@@ -298,7 +296,7 @@ const DynamicTable = () => {
         <Controller
           name={`date`}
           control={control}
-          defaultValue=""
+          defaultValue={today}
           render={({ field }) => (
             <TextField
               {...field}

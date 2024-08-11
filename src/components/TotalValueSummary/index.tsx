@@ -21,7 +21,7 @@ const TotalValueSummary = ({ rows }: { rows: RowData[] }) => {
         total += rowValue;
       }
     });
-    return total;
+    return total.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g, ".");
   };
 
   const totalValor = calculateTotalValor();
