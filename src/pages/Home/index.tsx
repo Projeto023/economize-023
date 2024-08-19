@@ -1,40 +1,37 @@
-import Container from "@mui/material/Container";
+import React, { useState } from 'react';
+import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 
-import DynamicTabs from "../../components/Tab";
-import Header from "../../components/Header";
-import { GoogleLogin } from "@react-oauth/google";
-import { useUserContext } from "../../context/UserContext";
+function Home() {
+  const [user, setUser] = useState<any | null>(null);
+  GoogleAuth.initialize({
+    clientId: '1060980321728-sk75uec3bca29iiigfau6doohgnc9bum.apps.googleusercontent.com',
+    scopes: ['profile', 'email'],
+    grantOfflineAccess: true,
+  });
 
-const Home = () => {
-  const { user, login } = useUserContext();
-  return user ? (
-    <Container component="main" maxWidth="md" style={{ height: "100vh" }}>
-      <div style={{ minHeight: "100%" }}>
-        <Header />
-        <DynamicTabs />
-      </div>
-    </Container>
-  ) : (
-    <Container
-      component="main"
-      maxWidth="md"
-      style={{
-        height: "100vh",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
-      <GoogleLogin
-        onSuccess={(credentialResponse) => {
-          login(credentialResponse.clientId!, credentialResponse.credential!);
-        }}
-        onError={() => {
-          console.log("Login Failed");
-        }}
-      />
-    </Container>
+  const handleGoogleSignIn = async () => {
+    try {
+      const googleUser = await GoogleAuth.signIn();
+      setUser(googleUser);
+//       alert(googleUser.givenName)
+    } catch (error) {
+      console.error("Deu ruim")
+      console.error(error);
+    }
+  };
+
+  return (
+    <div>
+      {user ? (
+        <div>
+          <h2>Welcome, {user.givenName}!</h2>
+          {/* Display user information */}
+        </div>
+      ) : (
+        <button onClick={handleGoogleSignIn}>Sign in with Google</button>
+      )}
+    </div>
   );
-};
+}
 
 export default Home;
