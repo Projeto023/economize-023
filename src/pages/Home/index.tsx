@@ -9,15 +9,20 @@ import { useUserContext } from "../../context/UserContext";
 
 function Home() {
   const { user, login } = useUserContext();
-  GoogleAuth.initialize({
-    clientId: '1060980321728-6pug209r5kbchm2nffvaunbq3uoluagb.apps.googleusercontent.com',
-    scopes: ['profile', 'email'],
-    grantOfflineAccess: true,
-  });
 
   const handleGoogleSignIn = async () => {
     try {
-//       console.log(process.argv)
+      var userAgent = navigator.userAgent.toLowerCase();
+      var Android = userAgent.indexOf("android") > -1;
+      if(Android){
+        GoogleAuth.initialize();
+      } else {
+        GoogleAuth.initialize({
+          clientId: '1060980321728-6pug209r5kbchm2nffvaunbq3uoluagb.apps.googleusercontent.com',
+          scopes: ['profile', 'email'],
+          grantOfflineAccess: true,
+        });
+      }
       const port = window.location.port; // Port number
       const hostname = window.location.hostname;
       console.log(`Running on IP: ${hostname}`);
@@ -25,9 +30,7 @@ function Home() {
       const googleUser = await GoogleAuth.signIn();
       console.log(googleUser)
       login(googleUser.id!, googleUser.email!, googleUser.name!, googleUser.imageUrl!);
-//       alert(googleUser.givenName)
     } catch (error) {
-      console.error("Deu ruim")
       console.error(error);
     }
   };
