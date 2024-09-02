@@ -14,7 +14,7 @@ import { useNavigate } from "react-router-dom";
 interface UserContextType {
   user: User;
   updateUser: (updatedUser: User) => void;
-  login: (clientId: string, credentials: string) => void;
+  login: (id: string, email: string, name: string, imageUrl: string) => void;
   logout: () => void;
 }
 
@@ -51,11 +51,12 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     localStorage.setItem("user", JSON.stringify(updatedUser));
   };
 
-  const login = (clientId: string, credentials: string) => {
+  const login = (id: string, email: string, name: string, imageUrl: string) => {
+    console.log({ id, email, name, imageUrl })
     axiosInstance
       .post(
         "/api/v1/login",
-        { clientId, credentials }
+        { id, email, name, imageUrl }
       )
       .then((response) => {
         updateUser(response.data.records);
