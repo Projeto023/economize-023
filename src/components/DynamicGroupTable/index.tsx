@@ -144,7 +144,7 @@ const DynamicGroupTable: React.FC<DynamicGroupTableProps> = ({groupId}) => {
               headerName: definition.formattedName,
               width: 150,
               key: index,
-              valueFormatter: (value) => `R$${value}`,
+              valueFormatter: (value: number) => `R$${value.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`,
             };
           } else if (definition.dataFormat === "date") {
             return {
@@ -152,7 +152,7 @@ const DynamicGroupTable: React.FC<DynamicGroupTableProps> = ({groupId}) => {
               headerName: definition.formattedName,
               width: 150,
               key: index,
-              valueFormatter: (value: string) => value.split("T")[0],
+              valueFormatter: (value: string) => value?.split("T")[0],
             };
           }
           return {
