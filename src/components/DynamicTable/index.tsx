@@ -18,6 +18,7 @@ import TotalValueSummary from "../TotalValueSummary";
 import CurrencyTextField from "../CurrencyTextField";
 import { useUserContext } from "../../context/UserContext";
 import axiosInstance from "../../config/axiosConfig";
+import styles from './index.module.css'
 
 interface RowData {
   id: number;
@@ -236,14 +237,7 @@ const DynamicTable = () => {
           };
         })}
       />
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "row",
-          justifyContent: "space-between",
-          paddingTop: "1em",
-        }}
-      >
+      <div className={styles.div_registro}>
         <Controller
           name={`type`}
           control={control}
