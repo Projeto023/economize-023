@@ -95,11 +95,15 @@ const DynamicTable = () => {
   };
 
   const handleOpen = (row: RowData) => {
+    const capitalizedType: string =
+      row.type[0].toUpperCase() + row.type.slice(1).toLowerCase();
+    const onlyDate: string = String(row.date).split("T")[0];
+
     setEditData(row);
     setValue("description", row.description);
     setValue("value", row.value);
-    setValue("type", row.type);
-    setValue("date", row.date);
+    setValue("type", capitalizedType);
+    setValue("date", onlyDate);
     setOpen(true);
   };
 
@@ -261,11 +265,11 @@ const DynamicTable = () => {
             return {
               field: definition.rowname,
               headerName: definition.formattedName,
-              width: 500,
+              width: 300,
               key: index,
               renderCell: (cell) => {
                 return (
-                  <div style={{ lineHeight: 2 }}>
+                  <div style={{ lineHeight: 2, paddingTop: 10 }}>
                     {cell.row.tags.map((tag: any, index: number) => (
                       <>
                         {index % 3 === 0 && index != 0 ? <br /> : <></>}
@@ -416,7 +420,7 @@ const DynamicTable = () => {
             <Controller
               name="type"
               control={control}
-              defaultValue="Gasto"
+              defaultValue=""
               render={({ field }) => (
                 <Select {...field} fullWidth style={{ marginBottom: "16px" }}>
                   <MenuItem key={"gasto"} value={"Gasto"}>
@@ -430,7 +434,7 @@ const DynamicTable = () => {
             />
 
             <Controller
-              name={`date`}
+              name="date"
               control={control}
               defaultValue=""
               render={({ field }) => (
