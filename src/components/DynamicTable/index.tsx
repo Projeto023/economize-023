@@ -8,8 +8,9 @@ import {
   Typography,
   Tabs,
   Tab,
+  Chip,
 } from "@mui/material";
-import { DataGrid } from "@mui/x-data-grid";
+import { DataGrid, GridRowHeightParams } from "@mui/x-data-grid";
 import { useState, useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -18,7 +19,7 @@ import TotalValueSummary from "../TotalValueSummary";
 import CurrencyTextField from "../CurrencyTextField";
 import { useUserContext } from "../../context/UserContext";
 import axiosInstance from "../../config/axiosConfig";
-import styles from './index.module.css'
+import styles from "./index.module.css";
 
 interface RowData {
   id: number;
@@ -66,6 +67,13 @@ const columnDefinition = [
     dataFormat: "option",
     isSelect: false,
   },
+  {
+    id: 5,
+    formattedName: "Etiquetas",
+    rowname: "tags",
+    dataFormat: "tags",
+    isSelect: false,
+  },
 ];
 
 const DynamicTable = () => {
@@ -74,7 +82,7 @@ const DynamicTable = () => {
   const { handleSubmit, control, setValue } = useForm();
   const [open, setOpen] = useState(false);
   const [editData, setEditData] = useState<RowData | null>(null);
-  const today = new Date().toISOString().split('T')[0];
+  const today = new Date().toISOString().split("T")[0];
 
   const handleFormSubmit = (data: any) => {
     createRecord(data);
@@ -87,11 +95,15 @@ const DynamicTable = () => {
   };
 
   const handleOpen = (row: RowData) => {
+    const capitalizedType: string =
+      row.type[0].toUpperCase() + row.type.slice(1).toLowerCase();
+    const onlyDate: string = String(row.date).split("T")[0];
+
     setEditData(row);
     setValue("description", row.description);
     setValue("value", row.value);
-    setValue("type", row.type);
-    setValue("date", row.date);
+    setValue("type", capitalizedType);
+    setValue("date", onlyDate);
     setOpen(true);
   };
 
@@ -116,6 +128,7 @@ const DynamicTable = () => {
             type: any;
             description: string;
             userId: number;
+            tags: any[];
           }) => {
             return {
               id: record.id,
@@ -124,6 +137,7 @@ const DynamicTable = () => {
               description: record.description,
               type: record.type === 1 ? "GASTO" : "RENDA",
               userId: record.userId,
+              tags: record.tags,
             } as RowData;
           }
         );
@@ -162,7 +176,7 @@ const DynamicTable = () => {
 
   function createRecord(data: any) {
     const recordToBeCreated = {
-      value: parseFloat(data.value.replaceAll('.', '').replaceAll(',','.')),
+      value: parseFloat(data.value.replaceAll(".", "").replaceAll(",", ".")),
       type: data.type.toUpperCase() === "GASTO" ? 1 : 2,
       description: data.description,
       userId: user.id,
@@ -182,6 +196,10 @@ const DynamicTable = () => {
     }
   }
 
+  function handleDeleteTag(tag: any) {
+    return null;
+  }
+
   return (
     <div style={{ height: "100%" }}>
       <TotalValueSummary rows={rows} />
@@ -191,7 +209,17 @@ const DynamicTable = () => {
           row.description + row.value + row.type + Math.random()
         }
         style={{ background: "white", minHeight: "50vh" }}
-        autoPageSize
+        initialState={{
+          pagination: { paginationModel: { pageSize: 5 } },
+        }}
+        pageSizeOptions={[5, 10, 25]}
+        getRowHeight={(row: GridRowHeightParams) => {
+          if (row.model.tags.length > 3) {
+            const len = row.model.tags.length;
+            return (len / 3) * 50;
+          }
+          return null;
+        }}
         columns={columnDefinition.map((definition, index) => {
           if (definition.dataFormat === "option") {
             return {
@@ -218,7 +246,11 @@ const DynamicTable = () => {
               headerName: definition.formattedName,
               width: 150,
               key: index,
-              valueFormatter: (value: number) => `R$${value.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`,
+              valueFormatter: (value: number) =>
+                `R$${value
+                  .toFixed(2)
+                  .replace(".", ",")
+                  .replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`,
             };
           } else if (definition.dataFormat === "date") {
             return {
@@ -226,7 +258,32 @@ const DynamicTable = () => {
               headerName: definition.formattedName,
               width: 150,
               key: index,
-              valueFormatter: (value: string) => value.split("T")[0],
+              valueFormatter: (value: string) =>
+                value ? value.split("T")[0] : "",
+            };
+          } else if (definition.dataFormat === "tags") {
+            return {
+              field: definition.rowname,
+              headerName: definition.formattedName,
+              width: 300,
+              key: index,
+              renderCell: (cell) => {
+                return (
+                  <div style={{ lineHeight: 2, paddingTop: 10 }}>
+                    {cell.row.tags.map((tag: any, index: number) => (
+                      <>
+                        {index % 3 === 0 && index != 0 ? <br /> : <></>}
+                        <Chip
+                          color="primary"
+                          size="small"
+                          onDelete={handleDeleteTag}
+                          label={tag.name}
+                        />
+                      </>
+                    ))}
+                  </div>
+                );
+              },
             };
           }
           return {
@@ -363,7 +420,7 @@ const DynamicTable = () => {
             <Controller
               name="type"
               control={control}
-              defaultValue="Gasto"
+              defaultValue=""
               render={({ field }) => (
                 <Select {...field} fullWidth style={{ marginBottom: "16px" }}>
                   <MenuItem key={"gasto"} value={"Gasto"}>
@@ -377,7 +434,7 @@ const DynamicTable = () => {
             />
 
             <Controller
-              name={`date`}
+              name="date"
               control={control}
               defaultValue=""
               render={({ field }) => (
