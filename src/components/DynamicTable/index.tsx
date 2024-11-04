@@ -9,6 +9,11 @@ import {
   Tabs,
   Tab,
   Chip,
+  Autocomplete,
+  AutocompleteRenderInputParams,
+  createFilterOptions,
+  AutocompleteChangeDetails,
+  AutocompleteChangeReason,
 } from "@mui/material";
 import { DataGrid, GridRowHeightParams } from "@mui/x-data-grid";
 import { useState, useEffect } from "react";
@@ -76,13 +81,34 @@ const columnDefinition = [
   },
 ];
 
+interface TagInterface {
+  inputValue?: string;
+  id: number;
+  description: string;
+  exists: boolean;
+}
+
 const DynamicTable = () => {
-  const { user } = useUserContext();
-  const [rows, setRows] = useState<RowData[]>([]);
   const { handleSubmit, control, setValue } = useForm();
+  const { user } = useUserContext();
+  const today = new Date().toISOString().split("T")[0];
+  const [rows, setRows] = useState<RowData[]>([]);
   const [open, setOpen] = useState(false);
   const [editData, setEditData] = useState<RowData | null>(null);
-  const today = new Date().toISOString().split("T")[0];
+  const [tagInputValue, setTagInputValue] = useState("");
+  const [selectedTagList, setSelectedTagList] = useState([] as TagInterface[]);
+  const [tagList, setTagList] = useState([] as TagInterface[]);
+
+  const getAllTagsFromUser = () => {
+    axiosInstance.get(`/api/v1/tag?user.id=${user.id}`).then((response) => {
+      const tagList: TagInterface[] = response.data.records.map((tag: any) => ({
+        id: tag.id,
+        description: tag.name,
+        exists: true,
+      }));
+      setTagList(tagList);
+    });
+  };
 
   const handleFormSubmit = (data: any) => {
     createRecord(data);
@@ -114,6 +140,7 @@ const DynamicTable = () => {
 
   useEffect(() => {
     updateRows();
+    getAllTagsFromUser();
   }, []);
 
   function updateRows() {
@@ -167,6 +194,14 @@ const DynamicTable = () => {
         type: data.type === "Gasto" ? 1 : 2,
         description: data.description,
         userId: user.id,
+        tags: {
+          tagNames: selectedTagList
+            .filter((tag) => !tag.exists)
+            .map((filteredTags) => filteredTags.description),
+          tagIds: selectedTagList
+            .filter((tag) => tag.exists)
+            .map((filteredTags) => filteredTags.id),
+        },
       })
       .then(() => {
         updateRows();
@@ -194,10 +229,6 @@ const DynamicTable = () => {
     } else {
       console.error("One or more fields are missing or invalid");
     }
-  }
-
-  function handleDeleteTag(tag: any) {
-    return null;
   }
 
   return (
@@ -273,12 +304,7 @@ const DynamicTable = () => {
                     {cell.row.tags.map((tag: any, index: number) => (
                       <>
                         {index % 3 === 0 && index != 0 ? <br /> : <></>}
-                        <Chip
-                          color="primary"
-                          size="small"
-                          onDelete={handleDeleteTag}
-                          label={tag.name}
-                        />
+                        <Chip color="primary" size="small" label={tag.name} />
                       </>
                     ))}
                   </div>
@@ -440,13 +466,105 @@ const DynamicTable = () => {
               render={({ field }) => (
                 <TextField
                   {...field}
+                  fullWidth
                   type="date"
                   variant="outlined"
                   onChange={(e) => field.onChange(e.target.value)}
-                  style={{ backgroundColor: "white" }}
+                  style={{ backgroundColor: "white", marginBottom: "16px" }}
                   InputLabelProps={{
                     shrink: true,
                   }}
+                />
+              )}
+            />
+
+            <Controller
+              name="tags"
+              control={control}
+              render={({ field }) => (
+                <Autocomplete
+                  multiple
+                  fullWidth
+                  selectOnFocus
+                  clearOnBlur
+                  handleHomeEndKeys
+                  freeSolo
+                  style={{ backgroundColor: "white", marginBottom: "16px" }}
+                  getOptionLabel={(option: string | TagInterface) =>
+                    typeof option === "string" ? option : option.description
+                  }
+                  isOptionEqualToValue={(
+                    option: TagInterface,
+                    value: TagInterface
+                  ) => option.id === value.id}
+                  options={
+                    tagInputValue &&
+                    !tagList.some(
+                      (tag: TagInterface) => tag.description === tagInputValue
+                    )
+                      ? [
+                          ...tagList,
+                          {
+                            id:
+                              tagList.length < 1
+                                ? 1
+                                : tagList.reduce(
+                                    (max, item) =>
+                                      item.id > max ? item.id : max,
+                                    tagList[0].id
+                                  ) + 1,
+                            description: `Adicionar ${tagInputValue}`,
+                            exists: false,
+                          },
+                        ]
+                      : tagList
+                  }
+                  renderTags={(value: readonly TagInterface[], getTagProps) =>
+                    value.map((option: TagInterface, index: number) => {
+                      const { key, ...tagProps } = getTagProps({ index });
+                      return (
+                        <Chip
+                          variant="outlined"
+                          label={option.description}
+                          key={key}
+                          {...tagProps}
+                        />
+                      );
+                    })
+                  }
+                  inputValue={tagInputValue}
+                  onInputChange={(
+                    event: React.SyntheticEvent,
+                    newInputValue: string
+                  ) => {
+                    console.log("onInputChange", newInputValue);
+                    setTagInputValue(newInputValue);
+                  }}
+                  onChange={(
+                    event: React.SyntheticEvent,
+                    newValue: (string | TagInterface)[],
+                    reason: AutocompleteChangeReason,
+                    details?: AutocompleteChangeDetails<TagInterface>
+                  ) => {
+                    const lastValue = newValue[newValue.length - 1];
+                    if (typeof lastValue === "string") {
+                    } else {
+                      if (lastValue?.description.includes("Adicionar")) {
+                        lastValue.description = lastValue.description.slice(9);
+                        setTagList([...tagList, lastValue]);
+                        newValue[newValue.length - 1] = lastValue;
+                      }
+                      setSelectedTagList(newValue as TagInterface[]);
+                    }
+                  }}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      variant="filled"
+                      label="freeSolo"
+                      placeholder="Favorites"
+                    />
+                  )}
                 />
               )}
             />
