@@ -7,7 +7,7 @@ import {
   Card,
   CardContent,
 } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface RowData {
   id: number;
@@ -19,13 +19,18 @@ interface RowData {
 }
 
 const TotalValueSummary = ({ rows }: { rows: RowData[] }) => {
-  // Convert string dates to Date objects if necessary (in case it's fetched as string)
-  const parsedRows = rows.map((row) => ({
-    ...row,
-    date: row.date instanceof Date ? row.date : new Date(row.date),
-  }));
-
+  const [parsedRows, setParsedRows] = useState<RowData[]>([]);
   const [filteredRows, setFilteredRows] = useState<RowData[]>(parsedRows);
+
+  useEffect(() => {
+    // Convert string dates to Date objects if necessary (in case it's fetched as string)
+    const parsedRows = rows.map((row) => ({
+      ...row,
+      date: row.date instanceof Date ? row.date : new Date(row.date),
+    }));
+    setFilteredRows(parsedRows);
+    setParsedRows(parsedRows);
+  }, [rows]);
 
   const filterByDate = (monthsBack: number) => {
     const today = new Date();

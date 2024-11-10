@@ -33,6 +33,15 @@ interface RowData {
   type: string;
   date: Date;
   userId: number;
+  tags: TagData[];
+}
+
+interface TagData {
+  id: number;
+  isDefault: boolean;
+  name: string;
+  updateAt: Date;
+  createAt: Date;
 }
 
 const columnDefinition = [
@@ -98,6 +107,9 @@ const DynamicTable = () => {
   const [tagInputValue, setTagInputValue] = useState("");
   const [selectedTagList, setSelectedTagList] = useState([] as TagInterface[]);
   const [tagList, setTagList] = useState([] as TagInterface[]);
+  const [defaultRowTagLost, setDefaultRowTagLost] = useState(
+    [] as TagInterface[]
+  );
 
   const getAllTagsFromUser = () => {
     axiosInstance.get(`/api/v1/tag?user.id=${user.id}`).then((response) => {
@@ -124,12 +136,18 @@ const DynamicTable = () => {
     const capitalizedType: string =
       row.type[0].toUpperCase() + row.type.slice(1).toLowerCase();
     const onlyDate: string = String(row.date).split("T")[0];
+    const tags: TagInterface[] = row.tags.map(
+      (tag: TagData) =>
+        ({ description: tag.name, exists: true, id: tag.id } as TagInterface)
+    );
 
     setEditData(row);
     setValue("description", row.description);
     setValue("value", row.value);
     setValue("type", capitalizedType);
     setValue("date", onlyDate);
+    setDefaultRowTagLost(tags);
+    setSelectedTagList(tags);
     setOpen(true);
   };
 
@@ -537,7 +555,6 @@ const DynamicTable = () => {
                     event: React.SyntheticEvent,
                     newInputValue: string
                   ) => {
-                    console.log("onInputChange", newInputValue);
                     setTagInputValue(newInputValue);
                   }}
                   onChange={(
@@ -557,12 +574,13 @@ const DynamicTable = () => {
                       setSelectedTagList(newValue as TagInterface[]);
                     }
                   }}
+                  defaultValue={defaultRowTagLost}
                   renderInput={(params) => (
                     <TextField
                       {...params}
                       variant="filled"
-                      label="freeSolo"
-                      placeholder="Favorites"
+                      label="Etiquetas"
+                      placeholder="Insira suas etiquetas"
                     />
                   )}
                 />
