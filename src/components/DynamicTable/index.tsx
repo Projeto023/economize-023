@@ -223,6 +223,7 @@ const DynamicTable = () => {
       })
       .then(() => {
         updateRows();
+        clearFields();
         handleClose();
       });
   }
@@ -234,6 +235,14 @@ const DynamicTable = () => {
       description: data.description,
       userId: user.id,
       recordDate: data.date,
+      tags: {
+        tagNames: selectedTagList
+          .filter((tag) => !tag.exists)
+          .map((filteredTags) => filteredTags.description),
+        tagIds: selectedTagList
+          .filter((tag) => tag.exists)
+          .map((filteredTags) => filteredTags.id),
+      },
     };
 
     const isValidRecord = Object.values(recordToBeCreated).every(
@@ -241,12 +250,21 @@ const DynamicTable = () => {
     );
 
     if (isValidRecord) {
-      axiosInstance
-        .post("/api/v1/record", recordToBeCreated)
-        .then(() => updateRows());
+      axiosInstance.post("/api/v1/record", recordToBeCreated).then(() => {
+        updateRows();
+        clearFields();
+      });
     } else {
       console.error("One or more fields are missing or invalid");
     }
+  }
+
+  function clearFields() {
+    /* setSelectedTagList([]);
+    setValue("description", null);
+    setValue("value", null);
+    setValue("type", null);
+    setValue("date", null); */
   }
 
   return (
@@ -402,6 +420,96 @@ const DynamicTable = () => {
               InputLabelProps={{
                 shrink: true,
               }}
+            />
+          )}
+        />
+
+        <Controller
+          name="tags"
+          control={control}
+          render={({ field }) => (
+            <Autocomplete
+              multiple
+              fullWidth
+              selectOnFocus
+              clearOnBlur
+              handleHomeEndKeys
+              freeSolo
+              style={{ backgroundColor: "white" }}
+              getOptionLabel={(option: string | TagInterface) =>
+                typeof option === "string" ? option : option.description
+              }
+              isOptionEqualToValue={(
+                option: TagInterface,
+                value: TagInterface
+              ) => option.id === value.id}
+              options={
+                tagInputValue &&
+                !tagList.some(
+                  (tag: TagInterface) => tag.description === tagInputValue
+                )
+                  ? [
+                      ...tagList,
+                      {
+                        id:
+                          tagList.length < 1
+                            ? 1
+                            : tagList.reduce(
+                                (max, item) => (item.id > max ? item.id : max),
+                                tagList[0].id
+                              ) + 1,
+                        description: `Adicionar ${tagInputValue}`,
+                        exists: false,
+                      },
+                    ]
+                  : tagList
+              }
+              renderTags={(value: readonly TagInterface[], getTagProps) =>
+                value.map((option: TagInterface, index: number) => {
+                  const { key, ...tagProps } = getTagProps({ index });
+                  return (
+                    <Chip
+                      variant="outlined"
+                      label={option.description}
+                      key={key}
+                      {...tagProps}
+                    />
+                  );
+                })
+              }
+              inputValue={tagInputValue}
+              onInputChange={(
+                event: React.SyntheticEvent,
+                newInputValue: string
+              ) => {
+                setTagInputValue(newInputValue);
+              }}
+              onChange={(
+                event: React.SyntheticEvent,
+                newValue: (string | TagInterface)[],
+                reason: AutocompleteChangeReason,
+                details?: AutocompleteChangeDetails<TagInterface>
+              ) => {
+                const lastValue = newValue[newValue.length - 1];
+                if (typeof lastValue === "string") {
+                } else {
+                  if (lastValue?.description.includes("Adicionar")) {
+                    lastValue.description = lastValue.description.slice(9);
+                    setTagList([...tagList, lastValue]);
+                    newValue[newValue.length - 1] = lastValue;
+                  }
+                  setSelectedTagList(newValue as TagInterface[]);
+                }
+              }}
+              defaultValue={defaultRowTagLost}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  variant="filled"
+                  label="Etiquetas"
+                  placeholder="Insira suas etiquetas"
+                />
+              )}
             />
           )}
         />
