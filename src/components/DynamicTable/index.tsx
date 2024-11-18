@@ -256,12 +256,14 @@ const DynamicTable = () => {
   function formatTagNames() {
     selectedTagList.forEach((selectedTag) => {
       const filteredTag = tagList.filter(
-        (tag) => tag.description === selectedTag.description
+        (tag) => (tag.description === selectedTag.description && tag.exists === true)
       );
       const tagAlreadyExists = filteredTag.length > 0;
       if (tagAlreadyExists) {
         selectedTag.exists = true;
         selectedTag.id = filteredTag[0].id;
+      } else {
+        selectedTag.exists = false;
       }
     });
 
