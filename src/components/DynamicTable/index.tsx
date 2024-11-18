@@ -14,6 +14,7 @@ import {
   createFilterOptions,
   AutocompleteChangeDetails,
   AutocompleteChangeReason,
+  CircularProgress,
 } from "@mui/material";
 import { DataGrid, GridRowHeightParams } from "@mui/x-data-grid";
 import { useState, useEffect } from "react";
@@ -110,6 +111,7 @@ const DynamicTable = () => {
   const [defaultRowTagLost, setDefaultRowTagLost] = useState(
     [] as TagInterface[]
   );
+  const [isLoading, setIsLoading] = useState(false);
 
   const getAllTagsFromUser = () => {
     axiosInstance.get(`/api/v1/tag?user.id=${user.id}`).then((response) => {
@@ -120,10 +122,6 @@ const DynamicTable = () => {
       }));
       setTagList(tagList);
     });
-  };
-
-  const handleFormSubmit = (data: any) => {
-    createRecord(data);
   };
 
   const handleEditFormSubmit = (data: any) => {
@@ -194,6 +192,8 @@ const DynamicTable = () => {
             return dateB - dateA;
           })
         );
+
+        setIsLoading(false);
       });
   }
 
@@ -212,37 +212,27 @@ const DynamicTable = () => {
         type: data.type === "Gasto" ? 1 : 2,
         description: data.description,
         userId: user.id,
-        tags: {
-          tagNames: selectedTagList
-            .filter((tag) => !tag.exists)
-            .map((filteredTags) => filteredTags.description),
-          tagIds: selectedTagList
-            .filter((tag) => tag.exists)
-            .map((filteredTags) => filteredTags.id),
-        },
+        tags: formatTagNames(),
       })
       .then(() => {
         updateRows();
-        clearFields();
         handleClose();
       });
   }
 
-  function createRecord(data: any) {
+  const handleFormSubmit = (data: any) => {
+    setIsLoading(true);
+    createRecord(data);
+  };
+
+  async function createRecord(data: any) {
     const recordToBeCreated = {
       value: parseFloat(data.value.replaceAll(".", "").replaceAll(",", ".")),
       type: data.type.toUpperCase() === "GASTO" ? 1 : 2,
       description: data.description,
       userId: user.id,
       recordDate: data.date,
-      tags: {
-        tagNames: selectedTagList
-          .filter((tag) => !tag.exists)
-          .map((filteredTags) => filteredTags.description),
-        tagIds: selectedTagList
-          .filter((tag) => tag.exists)
-          .map((filteredTags) => filteredTags.id),
-      },
+      tags: formatTagNames(),
     };
 
     const isValidRecord = Object.values(recordToBeCreated).every(
@@ -250,21 +240,39 @@ const DynamicTable = () => {
     );
 
     if (isValidRecord) {
-      axiosInstance.post("/api/v1/record", recordToBeCreated).then(() => {
+      try {
+        // Await the API call
+        await axiosInstance.post("/api/v1/record", recordToBeCreated);
+      } catch (error) {
+        console.error("Error creating record:", error);
+      } finally {
         updateRows();
-        clearFields();
-      });
+      }
     } else {
-      console.error("One or more fields are missing or invalid");
+      updateRows();
     }
   }
 
-  function clearFields() {
-    /* setSelectedTagList([]);
-    setValue("description", null);
-    setValue("value", null);
-    setValue("type", null);
-    setValue("date", null); */
+  function formatTagNames() {
+    selectedTagList.forEach((selectedTag) => {
+      const filteredTag = tagList.filter(
+        (tag) => tag.description === selectedTag.description
+      );
+      const tagAlreadyExists = filteredTag.length > 0;
+      if (tagAlreadyExists) {
+        selectedTag.exists = true;
+        selectedTag.id = filteredTag[0].id;
+      }
+    });
+
+    return {
+      tagNames: selectedTagList
+        .filter((tag) => !tag.exists)
+        .map((filteredTags) => filteredTags.description),
+      tagIds: selectedTagList
+        .filter((tag) => tag.exists)
+        .map((filteredTags) => filteredTags.id),
+    };
   }
 
   return (
@@ -356,6 +364,7 @@ const DynamicTable = () => {
           };
         })}
       />
+
       <div className={styles.div_registro}>
         <Controller
           name={`type`}
@@ -518,8 +527,10 @@ const DynamicTable = () => {
           onClick={handleSubmit(handleFormSubmit)}
           variant="contained"
           color="primary"
+          disabled={isLoading}
+          className={isLoading ? styles.disabledButton : styles.button}
         >
-          Adicionar
+          {isLoading ? "Adding..." : "Adicionar"}
         </Button>
       </div>
 
