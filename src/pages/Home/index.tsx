@@ -11,8 +11,7 @@ function Home() {
 
   const handleGoogleSignIn = async () => {
     try {
-      var userAgent = navigator.userAgent.toLowerCase();
-      var Android = userAgent.indexOf("android") > -1;
+      var Android = isFromAndroidApp();
       if (Android) {
         GoogleAuth.initialize();
       } else {
@@ -24,15 +23,24 @@ function Home() {
       }
       const port = window.location.port;
       const hostname = window.location.hostname;
-      console.log(`Running on IP: ${hostname}`);
-      console.log(`Running on Port: ${port}`);
       const googleUser = await GoogleAuth.signIn();
-      console.log(googleUser);
       login(googleUser.id!, googleUser.email!, googleUser.name!, googleUser.imageUrl!);
     } catch (error) {
       console.error(error);
     }
   };
+
+  function isFromAndroidApp() {
+    const userAgent = navigator.userAgent
+
+    // Check for Android device
+    const isAndroid = /Android/i.test(userAgent);
+
+    // Check for WebView (usually lacks 'Chrome')
+    const isWebView = /wv|Version\/[.0-9]+/.test(userAgent);
+
+    return isAndroid && isWebView;
+  }
 
   return user ? (
     <Container component="main" maxWidth="md" style={{ height: "100vh" }}>
