@@ -6,6 +6,8 @@ import {
   ButtonGroup,
   Card,
   CardContent,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import { useEffect, useState } from "react";
 
@@ -21,6 +23,8 @@ interface RowData {
 const TotalValueSummary = ({ rows }: { rows: RowData[] }) => {
   const [parsedRows, setParsedRows] = useState<RowData[]>([]);
   const [filteredRows, setFilteredRows] = useState<RowData[]>(parsedRows);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   useEffect(() => {
     // Convert string dates to Date objects if necessary (in case it's fetched as string)
@@ -79,6 +83,10 @@ const TotalValueSummary = ({ rows }: { rows: RowData[] }) => {
   const { totalGastos, totalRenda, saldo, saldoNumeric } =
     calculateTotals(filteredRows);
 
+  function calculateFontSize(value: string) {
+    return Math.max(1.5, 3.5 - value.length * 0.2);
+  }
+
   return (
     <Box
       textAlign="center"
@@ -91,12 +99,13 @@ const TotalValueSummary = ({ rows }: { rows: RowData[] }) => {
       mx="auto"
     >
       {/* Filter Buttons */}
-      <ButtonGroup
-        variant="contained"
+
+      <Grid
+        container
         sx={{
           borderRadius: "20px",
-          backgroundColor: "#1976d2",
           mb: 3,
+          justifyContent: "center",
           "& .MuiButton-root": {
             padding: "10px 20px",
             textTransform: "none",
@@ -107,19 +116,66 @@ const TotalValueSummary = ({ rows }: { rows: RowData[] }) => {
             "&:hover": {
               backgroundColor: "#125a9a",
             },
+            width: "7em",
           },
         }}
       >
-        <Button onClick={() => filterByDate(1)}>1 Mês</Button>
-        <Button onClick={() => filterByDate(6)}>6 Meses</Button>
-        <Button onClick={() => filterByDate(12)}>1 Ano</Button>
-        <Button onClick={() => setFilteredRows(parsedRows)}>Total</Button>
-      </ButtonGroup>
+        <Grid item xs={6} sm={6} md={2}>
+          <Button variant="contained" onClick={() => filterByDate(1)}>
+            1 Mês
+          </Button>
+        </Grid>
+        <Grid item xs={6} sm={6} md={2}>
+          <Button variant="contained" onClick={() => filterByDate(6)}>
+            6 Meses
+          </Button>
+        </Grid>
+        <Grid
+          item
+          xs={6}
+          sm={6}
+          md={2}
+          sx={{
+            marginTop: {
+              sm: "1em",
+              xs: "1em",
+              md: "0em",
+            },
+          }}
+        >
+          <Button variant="contained" onClick={() => filterByDate(12)}>
+            1 Ano
+          </Button>
+        </Grid>
+        <Grid
+          item
+          xs={6}
+          sm={6}
+          md={2}
+          sx={{
+            marginTop: {
+              sm: "1em",
+              xs: "1em",
+              md: "0em",
+            },
+          }}
+        >
+          <Button
+            variant="contained"
+            onClick={() => setFilteredRows(parsedRows)}
+          >
+            Total
+          </Button>
+        </Grid>
+      </Grid>
 
       {/* Total Cards */}
       <Grid container spacing={3}>
-        <Grid item xs={12} sm={4}>
-          <Card variant="outlined" sx={{ borderRadius: 3, boxShadow: 3 }}>
+        <Grid item xs={12} sm={12} md={4}>
+          <Card
+            variant="outlined"
+            sx={{ borderRadius: 3, boxShadow: 3, height: "100%" }}
+          >
             <CardContent>
               <Typography
                 variant="h6"
@@ -129,14 +185,24 @@ const TotalValueSummary = ({ rows }: { rows: RowData[] }) => {
               >
                 Total de Gastos
               </Typography>
-              <Typography variant="h4" color="error" fontWeight="bold">
+              <Typography
+                variant="h4"
+                color="error"
+                fontWeight="bold"
+                sx={{
+                  fontSize: `${calculateFontSize(totalGastos)}rem`,
+                }}
+              >
                 R$ {totalGastos}
               </Typography>
             </CardContent>
           </Card>
         </Grid>
-        <Grid item xs={12} sm={4}>
-          <Card variant="outlined" sx={{ borderRadius: 3, boxShadow: 3 }}>
+        <Grid item xs={12} sm={12} md={4}>
+          <Card
+            variant="outlined"
+            sx={{ borderRadius: 3, boxShadow: 3, height: "100%" }}
+          >
             <CardContent>
               <Typography
                 variant="h6"
@@ -146,14 +212,24 @@ const TotalValueSummary = ({ rows }: { rows: RowData[] }) => {
               >
                 Total de Renda
               </Typography>
-              <Typography variant="h4" color="primary" fontWeight="bold">
+              <Typography
+                variant="h4"
+                color="primary"
+                fontWeight="bold"
+                sx={{
+                  fontSize: `${calculateFontSize(totalRenda)}rem`,
+                }}
+              >
                 R$ {totalRenda}
               </Typography>
             </CardContent>
           </Card>
         </Grid>
-        <Grid item xs={12} sm={4}>
-          <Card variant="outlined" sx={{ borderRadius: 3, boxShadow: 3 }}>
+        <Grid item xs={12} sm={12} md={4}>
+          <Card
+            variant="outlined"
+            sx={{ borderRadius: 3, boxShadow: 3, height: "100%" }}
+          >
             <CardContent>
               <Typography
                 variant="h6"
@@ -167,6 +243,9 @@ const TotalValueSummary = ({ rows }: { rows: RowData[] }) => {
                 variant="h4"
                 fontWeight="bold"
                 color={saldoNumeric >= 0 ? "success.main" : "error.main"}
+                sx={{
+                  fontSize: `${calculateFontSize(saldo)}rem`,
+                }}
               >
                 R$ {saldo}
               </Typography>

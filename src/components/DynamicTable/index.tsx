@@ -15,6 +15,7 @@ import {
   AutocompleteChangeDetails,
   AutocompleteChangeReason,
   CircularProgress,
+  Grid,
 } from "@mui/material";
 import { DataGrid, GridRowHeightParams } from "@mui/x-data-grid";
 import { useState, useEffect } from "react";
@@ -256,14 +257,12 @@ const DynamicTable = () => {
   function formatTagNames() {
     selectedTagList.forEach((selectedTag) => {
       const filteredTag = tagList.filter(
-        (tag) => (tag.description === selectedTag.description && tag.exists === true)
+        (tag) => tag.description === selectedTag.description
       );
       const tagAlreadyExists = filteredTag.length > 0;
       if (tagAlreadyExists) {
         selectedTag.exists = true;
         selectedTag.id = filteredTag[0].id;
-      } else {
-        selectedTag.exists = false;
       }
     });
 
@@ -367,174 +366,186 @@ const DynamicTable = () => {
         })}
       />
 
-      <div className={styles.div_registro}>
-        <Controller
-          name={`type`}
-          control={control}
-          defaultValue="Gasto"
-          render={({ field }) => (
-            <Select
-              {...field}
-              onChange={(e) => field.onChange(e.target.value)}
-              value={field.value || "Gasto"}
-              style={{ backgroundColor: "white" }}
-              defaultValue={"Gasto"}
-            >
-              <MenuItem key={"gasto"} value={"Gasto"}>
-                Gasto
-              </MenuItem>
-              <MenuItem key={"renda"} value={"Renda"}>
-                Renda
-              </MenuItem>
-            </Select>
-          )}
-        />
-
-        <Controller
-          name={`description`}
-          control={control}
-          defaultValue=""
-          render={({ field }) => (
-            <TextField
-              {...field}
-              variant="outlined"
-              placeholder="Descrição"
-              onChange={(e) => field.onChange(e.target.value)}
-              style={{ backgroundColor: "white" }}
-            />
-          )}
-        />
-
-        <Controller
-          name={`value`}
-          control={control}
-          defaultValue="0,00"
-          render={({ field }) => (
-            <CurrencyTextField
-              value={field.value}
-              onChange={(value) => field.onChange(value)} // Pass the value to the react-hook-form controller
-            />
-          )}
-        />
-
-        <Controller
-          name={`date`}
-          control={control}
-          defaultValue={today}
-          render={({ field }) => (
-            <TextField
-              {...field}
-              type="date"
-              variant="outlined"
-              onChange={(e) => field.onChange(e.target.value)}
-              style={{ backgroundColor: "white" }}
-              InputLabelProps={{
-                shrink: true,
-              }}
-            />
-          )}
-        />
-
-        <Controller
-          name="tags"
-          control={control}
-          render={({ field }) => (
-            <Autocomplete
-              multiple
-              fullWidth
-              selectOnFocus
-              clearOnBlur
-              handleHomeEndKeys
-              freeSolo
-              style={{ backgroundColor: "white" }}
-              getOptionLabel={(option: string | TagInterface) =>
-                typeof option === "string" ? option : option.description
-              }
-              isOptionEqualToValue={(
-                option: TagInterface,
-                value: TagInterface
-              ) => option.id === value.id}
-              options={
-                tagInputValue &&
-                !tagList.some(
-                  (tag: TagInterface) => tag.description === tagInputValue
-                )
-                  ? [
-                      ...tagList,
-                      {
-                        id:
-                          tagList.length < 1
-                            ? 1
-                            : tagList.reduce(
-                                (max, item) => (item.id > max ? item.id : max),
-                                tagList[0].id
-                              ) + 1,
-                        description: `Adicionar ${tagInputValue}`,
-                        exists: false,
-                      },
-                    ]
-                  : tagList
-              }
-              renderTags={(value: readonly TagInterface[], getTagProps) =>
-                value.map((option: TagInterface, index: number) => {
-                  const { key, ...tagProps } = getTagProps({ index });
-                  return (
-                    <Chip
-                      variant="outlined"
-                      label={option.description}
-                      key={key}
-                      {...tagProps}
-                    />
-                  );
-                })
-              }
-              inputValue={tagInputValue}
-              onInputChange={(
-                event: React.SyntheticEvent,
-                newInputValue: string
-              ) => {
-                setTagInputValue(newInputValue);
-              }}
-              onChange={(
-                event: React.SyntheticEvent,
-                newValue: (string | TagInterface)[],
-                reason: AutocompleteChangeReason,
-                details?: AutocompleteChangeDetails<TagInterface>
-              ) => {
-                const lastValue = newValue[newValue.length - 1];
-                if (typeof lastValue === "string") {
-                } else {
-                  if (lastValue?.description.includes("Adicionar")) {
-                    lastValue.description = lastValue.description.slice(9);
-                    setTagList([...tagList, lastValue]);
-                    newValue[newValue.length - 1] = lastValue;
-                  }
-                  setSelectedTagList(newValue as TagInterface[]);
-                }
-              }}
-              defaultValue={defaultRowTagLost}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  variant="filled"
-                  label="Etiquetas"
-                  placeholder="Insira suas etiquetas"
-                />
-              )}
-            />
-          )}
-        />
-
-        <Button
-          onClick={handleSubmit(handleFormSubmit)}
-          variant="contained"
-          color="primary"
-          disabled={isLoading}
-          className={isLoading ? styles.disabledButton : styles.button}
+      <Grid container columns={14} className={styles.div_registro}>
+        <Grid item xs={12} md={4}>
+          <Controller
+            name={`type`}
+            control={control}
+            defaultValue="Gasto"
+            render={({ field }) => (
+              <Select
+                {...field}
+                onChange={(e) => field.onChange(e.target.value)}
+                value={field.value || "Gasto"}
+                style={{ backgroundColor: "white", width: "100%" }}
+                defaultValue={"Gasto"}
+              >
+                <MenuItem key={"gasto"} value={"Gasto"}>
+                  Gasto
+                </MenuItem>
+                <MenuItem key={"renda"} value={"Renda"}>
+                  Renda
+                </MenuItem>
+              </Select>
+            )}
+          />
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <Controller
+            name={`description`}
+            control={control}
+            defaultValue=""
+            render={({ field }) => (
+              <TextField
+                {...field}
+                variant="outlined"
+                placeholder="Descrição"
+                onChange={(e) => field.onChange(e.target.value)}
+                style={{ backgroundColor: "white", width: "100%" }}
+              />
+            )}
+          />
+        </Grid>
+        <Grid
+          item
+          xs={12}
+          md={4}
+          sx={{ "& .MuiFormControl-root": { width: "100%" } }}
         >
-          {isLoading ? "Adding..." : "Adicionar"}
-        </Button>
-      </div>
+          <Controller
+            name={`value`}
+            control={control}
+            defaultValue="0,00"
+            render={({ field }) => (
+              <CurrencyTextField
+                value={field.value}
+                onChange={(value) => field.onChange(value)} // Pass the value to the react-hook-form controller
+              />
+            )}
+          />
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <Controller
+            name={`date`}
+            control={control}
+            defaultValue={today}
+            render={({ field }) => (
+              <TextField
+                {...field}
+                type="date"
+                variant="outlined"
+                onChange={(e) => field.onChange(e.target.value)}
+                style={{ backgroundColor: "white", width: "100%" }}
+                InputLabelProps={{
+                  shrink: true,
+                }}
+              />
+            )}
+          />
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <Controller
+            name="tags"
+            control={control}
+            render={({ field }) => (
+              <Autocomplete
+                multiple
+                selectOnFocus
+                clearOnBlur
+                handleHomeEndKeys
+                freeSolo
+                style={{ backgroundColor: "white", width: "100%" }}
+                getOptionLabel={(option: string | TagInterface) =>
+                  typeof option === "string" ? option : option.description
+                }
+                isOptionEqualToValue={(
+                  option: TagInterface,
+                  value: TagInterface
+                ) => option.id === value.id}
+                options={
+                  tagInputValue &&
+                  !tagList.some(
+                    (tag: TagInterface) => tag.description === tagInputValue
+                  )
+                    ? [
+                        ...tagList,
+                        {
+                          id:
+                            tagList.length < 1
+                              ? 1
+                              : tagList.reduce(
+                                  (max, item) =>
+                                    item.id > max ? item.id : max,
+                                  tagList[0].id
+                                ) + 1,
+                          description: `Adicionar ${tagInputValue}`,
+                          exists: false,
+                        },
+                      ]
+                    : tagList
+                }
+                renderTags={(value: readonly TagInterface[], getTagProps) =>
+                  value.map((option: TagInterface, index: number) => {
+                    const { key, ...tagProps } = getTagProps({ index });
+                    return (
+                      <Chip
+                        variant="outlined"
+                        label={option.description}
+                        key={key}
+                        {...tagProps}
+                      />
+                    );
+                  })
+                }
+                inputValue={tagInputValue}
+                onInputChange={(
+                  event: React.SyntheticEvent,
+                  newInputValue: string
+                ) => {
+                  setTagInputValue(newInputValue);
+                }}
+                onChange={(
+                  event: React.SyntheticEvent,
+                  newValue: (string | TagInterface)[],
+                  reason: AutocompleteChangeReason,
+                  details?: AutocompleteChangeDetails<TagInterface>
+                ) => {
+                  const lastValue = newValue[newValue.length - 1];
+                  if (typeof lastValue === "string") {
+                  } else {
+                    if (lastValue?.description.includes("Adicionar")) {
+                      lastValue.description = lastValue.description.slice(9);
+                      setTagList([...tagList, lastValue]);
+                      newValue[newValue.length - 1] = lastValue;
+                    }
+                    setSelectedTagList(newValue as TagInterface[]);
+                  }
+                }}
+                defaultValue={defaultRowTagLost}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    variant="filled"
+                    label="Etiquetas"
+                    placeholder="Insira suas etiquetas"
+                  />
+                )}
+              />
+            )}
+          />
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <Button
+            onClick={handleSubmit(handleFormSubmit)}
+            variant="contained"
+            color="primary"
+            disabled={isLoading}
+            className={isLoading ? styles.disabledButton : styles.button}
+          >
+            {isLoading ? "Adding..." : "Adicionar"}
+          </Button>
+        </Grid>
+      </Grid>
 
       <Modal open={open} onClose={handleClose}>
         <Box
